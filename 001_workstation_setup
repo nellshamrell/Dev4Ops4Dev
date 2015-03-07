@@ -1,0 +1,24 @@
+# Setting Up Your Development Environment
+
+We want all attendees of this workshop to develop in the same environment.  To do this, we will be using a combination of Virtual Box and Vagrant so that each attendee (no matter what OS their laptop is running on) will be able to develop from an Ubuntu Linux 14.04 virtual machine.  We are assuming some familiarity with the linux command line, but if you are not familiar please reach out to an instructor and your fellow students.
+
+## What you will need to install on your laptop
+
+Virtual Box
+Vagrant
+
+## Introduction to Virtual Box and Vagrant
+
+[Virtual Box](https://www.virtualbox.org/) allows your system to run multiple virtual machines from your laptop's OS without needing to reboot or affect your laptop's OS.
+
+[Vagrant](https://www.vagrantup.com/) is a wrapper for Virtual Box VMs which allows you to create portable work environments you can take from system to system.  It makes it easy to ssh into a virtual machine and interact with it the way you would interact with a cloud server.
+
+## Setting up Virtual Box and Vagrant
+
+### OS X
+
+### Windows 7
+
+### Windows 8.1
+
+### Ubuntu Linux
