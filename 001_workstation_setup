@@ -1,24 +1,105 @@
 # Setting Up Your Development Environment
 
-We want all attendees of this workshop to develop in the same environment.  To do this, we will be using a combination of Virtual Box and Vagrant so that each attendee (no matter what OS their laptop is running on) will be able to develop from an Ubuntu Linux 14.04 virtual machine.  We are assuming some familiarity with the linux command line, but if you are not familiar please reach out to an instructor and your fellow students.
+We want all attendees of this workshop to develop in the same environment.  To do this, we will be using a combination of VirtualBox and Vagrant so that each attendee (no matter what OS their laptop is running on) will be able to develop from an Ubuntu Linux 14.04 virtual machine.  We are assuming some familiarity with the linux command line, but if you are not familiar please reach out to an instructor and your fellow students.
 
 ## What you will need to install on your laptop
 
-Virtual Box
+VirtualBox
 Vagrant
 
-## Introduction to Virtual Box and Vagrant
+## Introduction to VirtualBox and Vagrant
 
-[Virtual Box](https://www.virtualbox.org/) allows your system to run multiple virtual machines from your laptop's OS without needing to reboot or affect your laptop's OS.
+[VirtualBox](https://www.virtualbox.org/) allows your system to run multiple virtual machines from your laptop's OS without needing to reboot or affect your laptop's OS.
 
-[Vagrant](https://www.vagrantup.com/) is a wrapper for Virtual Box VMs which allows you to create portable work environments you can take from system to system.  It makes it easy to ssh into a virtual machine and interact with it the way you would interact with a cloud server.
+[Vagrant](https://www.vagrantup.com/) is a wrapper for VirtualBox VMs which allows you to create portable work environments you can take from system to system.  It makes it easy to ssh into a virtual machine and interact with it the way you would interact with a cloud server.
 
-## Setting up Virtual Box and Vagrant
+## Setting up VirtualBox
+
+Download the VirtualBox package appropriate for your Operating system [here](https://www.virtualbox.org/wiki/Downloads)
+After it is downloaded and installed, follow the instructions [here](http://www.virtualbox.org/manual/ch01.html#idp91929072) to start up VirtualBox.
+
+[TO DO: Decide if we want to provide Virtual Box installation packages on a USB stick to avoid hitting the wifi so hard]
+
+## Setting up Vagrant
+
+Download the Vagrant package appropriate for your Operating System [here](http://www.vagrantup.com/downloads)
+
+[TO DO: Decide if we want to provide Vagrant installation packages on a USB stick to avoid hitting the wifi so hard]
 
 ### OS X
 
+Follow the Vagrant setup instructions located [here](https://docs.vagrantup.com/v2/getting-started/index.html)
+
+Create a new folder to host your workshop material.  Call it whatever you like.
+
+Open up a terminal window and change directories into your workshop folder.  IE, if you created your workshop folder within your documents directory, you would navigate there by typing this in the terminal.
+
+```bash
+  $ cd Documents/my_workshop_folder
+```
+
+Head on down to the "Using Vagrant" section of these instructions.
+
 ### Windows 7
+
+You must also install PuTTY (a Telnet and SSH client) and PuTTY gen (an RSA and DSA key generation utility).  You can downlad and install these [here](http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html)
+
+Create a new folder to host your workshop material.  Call it whatever you like, I created mine on my windows desktop but you can create it wherever you choose.
+
+Hold down shift and right click on the project folder, then select "open command window here"
+
+If you receive the error "Timed out while waiting for the machine to boot", follow these instructions:
+
+1) Open up the VagrantFile in your project directory with Notepad (it's easiest do do this OUTSIDE of the command prompt)
+2) Add these lines in between "Vagrant.configure(2) do |config|" and "end" lines
+
+  ```bash
+   config.vm.provider :virtualbox do |vb|
+     vb.gui = true
+   end
+  ```
+3) Save the file
+4) Navigate back to your command prompt
+5) Destroy the previous Vagrant virtual machine with this command
+
+  ```bash
+    $ vagrant destroy
+  ```
+6) The start the
+
+Source: this [Stack Overflow Answer](http://stackoverflow.com/a/22575302).
+
+Head on down to the "Using Vagrant" section of these instructions.
 
 ### Windows 8.1
 
-### Ubuntu Linux
+### Linux
+
+## Starting Vagrant
+
+Let's create a Vagrant box that runs Ubuntu 14.04 LTS (Trusty Tahr)
+
+In your project directory (using terminal if you're on a Mac or Linux box, using the command prompt if you're on a Windows box) type in this command:
+
+```bash
+  $ vagrant init ubuntu/trusty64
+```
+This will create a Vagrant file in the project directory, which will allow us to configure our Vagrant box.  Go ahead and open it up and take a look through if you like.
+
+[TO DO: See if there's a way to do this locally]
+
+Then run this command to start up your new Vagrant box
+
+```bash
+  $ vagrant up
+```
+
+## SSHing into a Vagrant Box
+
+Now it's time to SSH into your new Vagrant box so we can use it as a development environment!  The procedure for doing this varies slightly by Operating System, so please follow the appropriate instructions below.
+
+### OS X or Linux
+
+### Windows 7 or 8.1
+
+## Setting up Chef

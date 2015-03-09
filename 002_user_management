@@ -1,0 +1,58 @@
+# Lesson
+[BEN WILL PROVIDE CONTENT FOR THIS PART]
+
+# Exercises
+
+## Part 1: Creating a user by hand
+
+On example web server
+
+```bash
+$ sudo adduser deploy
+```
+
+```bash
+(VM) $ sudo adduser deploy sudo
+```
+
+```bash
+(VM) $ sudo vim /etc/sudoers.d/deploy
+```
+
+Add this line to the file.
+
+```bash
+deploy ALL=(ALL) NOPASSWD:ALL
+```
+Then save and quit the file.
+
+```bash
+(VM) $ sudo service sudo restart
+```
+
+Switch to the deploy user account (you will be prompted for the password you entered for the deploy user above).
+
+```bash
+(VM) $ su deploy
+```
+
+## Part 2: Creating a user with Chef
+
+Create a Chef Repo
+
+```bash
+ $ chef generate repo web_server_repo
+```
+Change directories into that repo
+
+```bash
+ $ cd web_server_repo
+```
+
+Create a cookbook
+
+```bash
+ $ chef generate cookbook cookbooks/user_management_cookbook
+```
+
+## Part 3: Test Driving Creating a user with Chef
