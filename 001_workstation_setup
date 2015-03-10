@@ -209,8 +209,6 @@ You don't need to update the gems again, but go ahead if you'd like to confirm t
 
 ### Setting up your AWS config
 
-[TO DO: Figure out how users will get AWS credentials - Chef will provide?]
-
 In order to deploy to AWS, we need to provide our credentials in a place they can be easily accessed.  To do this, first create a directory called ".aws" to hold these credentials.
 
 ```bash
@@ -233,6 +231,8 @@ Then open the file using your preferred text editor (I use VIM)
 
 Add in the following values:
 
+[TO DO: Figure out how users will get AWS credentials - Chef will provide?]
+
 (ChefConf takes place on the west coast, so we will be using the us-west-2 region)
 
 ```bash
@@ -242,3 +242,7 @@ Add in the following values:
 ```
 
 Then save and close the file.
+
+## Conclusion
+
+And that sets up your development environment for this workshop!  Now onto using it!
