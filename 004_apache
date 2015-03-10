@@ -1,0 +1,94 @@
+# Lesson
+
+Apache is the main piece of our web server, in fact it's called a "Web Server."  It's what enables communication over networks, which allows our server to connect and be connected to the outside world.
+
+# Exercises
+
+## Install Apache by hand
+
+### Setting up a clean Ubuntu Server
+
+Let's spin up a clean copy of a server running Ubuntu to practice installing Apache.
+
+Create a new directory in your project folder, maybe call it "hand_crafted_apache" or something to that effect.
+
+Initiate a Vagrant file with:
+
+```bash
+  vagrant init ubuntu/trusty64
+```
+
+[TO DO: Explore if there is a way to do this locally)
+
+Then spin up the Vagrant VM.
+
+```bash
+  vagrant up
+```
+
+Then SSH into the VM
+
+[TO DO: Add any special instructions for Windows]
+
+```bash
+  vagrant ssh
+```
+
+### Installing the Apache package
+
+Run:
+
+```bash
+(VM) $ sudo apt-get install apache2
+```
+
+Once this is complete, let's verify that Apache is working on this VM.  Run this command:
+
+```bash
+(VM) $ wget -qO- 127.0.0.1
+```
+If Apache is installed correctly, the command line will output an html document which includes the words "It works!"
+
+Now we are done with this VM.  Go ahead and exit out of it, then run "vagrant destroy", and navigate back to your development VM.
+
+## Install Apache with Chef
+
+Installing Apache by hand may work well on one or two servers - but imagine a fleet of hundreds or thousands of servers.  Installing Apache on all of them by hand, then keeping them updated and synced by hand, would be unmanageable.  Fortunately, as we are a ChefConf, we can use Chef to capture this installation of Apache in a cookbook and enable us to automate it across rows and rows of servers.
+
+### Creating a Chef Repo for our cookbooks, etc.
+
+First, we need to create a Chef repo of our own.  This will contain all our cookbooks, templates, etc. for our web server.
+
+Make sure you're on your DEVELOPMENT VM and run
+
+```bash
+  $ chef generate repo my_web_server_chef_repo
+```
+
+Then CD into that directory:
+
+```bash
+  $ cd my_web_server_chef_repo
+```
+
+Now, let's create an actual cookbook to manage our Apache installs.
+
+```bash
+  $ chef generate cookbook apache2_cookbook
+```
+
+Cookbooks always need to contain recipes and our's is no different.  When we create a cookbook with the chef generate cookbook command, it auomatically creates a recipes directory.  Even better, there's already a recipe included called "default.rb".  Open up the default.rb recipe with your favorite text editor (here I use Vim).
+
+```bash
+  $ vim cookbooks/apache2_cookbook/recipes/default.rb
+```
+
+And insert the following
+
+```bash
+  package 'apache2' # Installs the apache2 package
+```
+
+Here we're defining a resource that we expect to find on our servers after running Chef.  This tells Chef to install the apache2 package if it is not already there.
+
+## Test Drive Installing Apache with Chef
