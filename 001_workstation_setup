@@ -140,6 +140,59 @@ This will take a few minutes.  Once it is complete (you'll see a message that sa
 
 You should see something along the lines of "Chef Development Kit Version: 0.4.0"
 
+## Configuring Ruby
+
+[TO DO: Capture in a workstation setup Chef recipe?]
+
+We'll be using Ruby to create Chef code.  Although ChefDK does come with a current version of Ruby, there is also an earlier version of Ruby already installed on our Ubuntu 14.04 system.
+
+We need to configure are our development environment to use the ChefDK version of Ruby, rather than the system version of Ruby.  To do this, first run:
+
+```bash
+  $ which ruby
+```
+
+If it returns something like:
+
+```bash
+  usr/bin/ruby
+```
+
+That means your development environment is using the system ruby, rather than the ChefDK version of Ruby.  To fix this, run:
+
+```bash
+  $ echo 'eval "$(chef shell-init bash)"' >> ~/.bash_profile
+```
+
+This adds a line to your .bash_profile file, telling it to use the ChefDK version of Ruby.
+
+Now we need to apply this change.  To do this, run:
+
+```bash
+  $ source ~/.bash_profile
+```
+
+Then re-run:
+
+```bash
+  $ which ruby
+```
+
+It should now return:
+
+```bash
+  /opt/chefdk/embedded/bin/ruby
+```
+
+There are some additional packages you will need to install to work with Ruby on Ubuntu.  You can install these with this command:
+
+[TO DO: Capture in workstation set up Chef recipe?]
+
+```bash
+  $ sudo apt-get install git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties
+```
+
+
 ## Setting up Git
 
 [TO DO: Capture in a workstation setup Chef recipe?]
