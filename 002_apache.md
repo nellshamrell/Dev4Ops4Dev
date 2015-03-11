@@ -367,35 +367,158 @@ It should look like this:
 
 See those first two lines where we define what driver we want test kitchen to use?  That defines what platform we want the VM test kitchen will spin up to run on.  By default, Test Kitchen will spin up a Vagrant VM and normally this is how I run Test Kitchen.
 
-However, all of us in this workshop are already developing on Vagrant VMs.  Spinning up a VM within a VM is messy at best, fortunately there are other platforms Test Kitchen can use to spin up a VM.  We're going to use AWS.
+However, all of us in this workshop are already developing on Vagrant VMs.  Spinning up a VM within a VM is messy at best, fortunately there are other platforms Test Kitchen can use to spin up a VM.  We're going to use Digital Ocean.
 
-For Test Kitchen to use AWS, we need to install an additional gem on in our Development Environment - kitchen-ec2
+For Test Kitchen to use Digital Ocean, we need to install an additional gem on in our Development Environment - [kitchen-digitalocean](https://github.com/test-kitchen/kitchen-digitalocean)
 
-[TO DO: Go over what ec2 means?  Do this earlier in the workshop?]
 [TO DO: Should we include this gem as part of a workstation setup Chef recipe?]
 
-To install kitchen-ec2, run this command:
+To install kitchen-digitalocean, run this command:
 
 ```bash
-  $ sudo chef gem install kitchen-ec2
+  $ sudo chef gem install kitchen-digitalocean
 ```
 
 Putting "chef" before "gem install" ensures that we will use the ChefDK version of Ruby.
 
-This will take a little bit.
+Next, you will need to set some environmental variables in your shell that Test Kitchen will use to authenticate to Digital Ocean.
 
-Next, we need to add a key to our ~/.aws directory to authorize Test Kitchen to spin up a VM.
+[TO DO: How will they get Digital Access tokens?  We will issue one to each person in class?]
 
-[TO DO: How will they get this key?]
-
-Create the key file with this command:
+First, set the DIGITALOCEAN_ACCESS_TOKEN environmental variable:
 
 ```bash
-  $ touch ~/.aws/key.pem
+  $ export DIGITALOCEAN_ACCESS_TOKEN="(token instructors gave you at the beginning of the class)"
 ```
 
-Then open that file.  Copy and paste your key into there, then save and close the file.
+Now set the DIGITALOCEAN_SSH_KEY_IDS variable:
 
-[TO DO: How will they get the key to copy and paste?]
+[TO DO: We'll need a way to gather all the student ssh keys, add to digital ocean account, then distribute to each member of class?  This is a highly manual process with lots of possibility for error.]
+
+```bash
+  $ export DIGITALOCEAN_SSH_KEY_IDS="(key provided by instructor)"
+```
+
+Now, open up your .kitchen.yml file and modify it so it looks like this:
+
+[TO DO: Explain more what each item in kitchen.yml file is doing]
+
+```bash
+---
+  driver:
+    name: digitalocean
+
+  provisioner:
+    name: chef_zero
+
+  platforms:
+    - name: ubuntu-14.04
+    driver:
+      name: digitalocean
+      image: ubuntu-14-04-x64
+
+  suites:
+    - name: default
+      run_list:
+      - recipe[apache2_cookbook::default]
+      attributes:
+```
+
+Save and close the file.
+
+Now run the command:
+
+```bash
+  $ kitchen list
+```
+
+You should receive output similar to this:
+
+```bash
+  Instance             Driver        Provisioner  Last Action
+  default-ubuntu-1404  Digitalocean  ChefZero     <Not Created>
+```
+
+This means Test Kitchen is now aware there is an environment it needs to run tests against our cookbook in, but it has not yet been created.
+
+Let's go ahead and create this instance for Test Kitchen on Digital Ocean:
+
+```bash
+  $ kitchen create default-ubuntu-1404
+```
+
+This will take a little bit while Digital Ocean spins up the instance and gets it ssh ready.  you should receive this confirmation message within 6-7 minutes:
+
+
+```bash
+  Finished creating <default-ubuntu-1404> (5m15.98s).
+  -----> Kitchen is finished. (5m16.34s)
+```
+
+Alright, let's run kitchen list again:
+
+```bash
+  $ kitchen list
+```
+
+You should see output similar to this:
+
+```bash
+  Instance             Driver        Provisioner  Last Action
+  default-ubuntu-1404  Digitalocean  ChefZero     Created
+```
+
+The final thing we need to do is install Chef Client on this instance in order to run our tests.  To do that, run:
+
+```bash
+  $ kitchen setup
+```
+
+You'll see lots of output.  When it completes, run kitchen list one last time:
+```bash
+  $ kitchen list
+```
+
+Now you'll see this output:
+```bash
+  Instance             Driver        Provisioner  Last Action
+  default-ubuntu-1404  Digitalocean  ChefZero     Set Up
+```
+
+And now we're ready to write and run some tests!
+
+### Writing some tests
+
+First, let's make sure that Test Kitchen can run our code.
+
+Open up recipes/default.rb
+
+```bash
+  $ vim recipes/default.rb
+```
+
+And add this content.
+
+```bash
+  log "TEST KITCHEN IS RUNNING MY CODE!!!"
+```
+
+Save and close the file.
+
+Now we'll use Test Kitchen to run this code.  To do this, we use the "kitchen converge" command:
+
+```bash
+  $ kitchen converge default-ubuntu-1404
+```
+
+At some point in the output, you should see this:
+
+```bash
+  Recipe: apache2_cookbook::default
+    * log[TEST KITCHEN IS RUNNING MY CODE!!!] action write
+```
+
+Huzzah!  This means Test Kitchen can run our cookbook!  Onto some real cookbook code.
+
 
 
