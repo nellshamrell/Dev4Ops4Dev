@@ -233,69 +233,6 @@ Check that the values are stored correctly by running:
 
 Next, you'll need to create an SSH key on your developer workstation and add it to your Github accout to allow you to pull and push repositories from/to Github.  Github provides [excellent instructions](https://help.github.com/articles/generating-ssh-keys/) on how to do this.  If you need help, please ask!
 
-## Setting up AWS
-
-### Updating AWS Gems
-
-Later in this workshop we'll be deploying to live instances on AWS.  ChefDK includes some gems to assist with this, but let's update them to ensure we have the latest versions.
-
-```bash
-  $ chef gem update chef-provisioning chef-provisioning-aws
-```
-
-If you recieve this warning when updating these gems:
-
-```bash
-  WARNING:  You don't have /home/vagrant/.chefdk/gem/ruby/2.1.0/bin in your PATH,
-            gem executables will not run.
-```
-
-Run this command:
-
-[TO DO: Explain what this is doing]
-
-```bash
-  $ PATH=$HOME/.chefdk/gem/ruby/2.1.0/bin:/opt/chefdk/bin:$PATH
-```
-
-You don't need to update the gems again, but go ahead if you'd like to confirm the warning does not appear again.
-
-### Setting up your AWS config
-
-In order to deploy to AWS, we need to provide our credentials in a place they can be easily accessed.  To do this, first create a directory called ".aws" to hold these credentials.
-
-```bash
-  $ mkdir -p ~/.aws
-```
-
-Then create a config file in this directory:
-
-```bash
-  $ touch ~/.aws/config
-```
-
-Then open the file using your preferred text editor (I use VIM)
-
-[TO DO: Briefly explain text editor options on Ubuntu?  Vim, nano, etc?]
-
-```bash
-  $ vim ~/.aws/config
-```
-
-Add in the following values:
-
-[TO DO: Figure out how users will get AWS credentials - Chef will provide?]
-
-(ChefConf takes place on the west coast, so we will be using the us-west-2 region)
-
-```bash
-  region=us-west-2
-  aws_access_key_id = your_aws_access_key_id
-  aws_secret_access_key = your_aws_secret_access_key
-```
-
-Then save and close the file.
-
 ## Conclusion
 
 And that sets up your development environment for this workshop!  Now onto using it!
