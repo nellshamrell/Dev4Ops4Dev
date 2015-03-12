@@ -30,6 +30,14 @@ Then SSH into the VM
   vagrant ssh
 ```
 
+## Update Ubuntu
+
+Run this command in the new VM to update Ubuntu's packages:
+
+```bash
+  $ sudo apt-get update
+```
+
 ## Installing the Apache package
 
 Run:
@@ -45,7 +53,12 @@ Once this is complete, let's verify that Apache is working on this VM.  Run this
 ```
 If Apache is installed correctly, the command line will output an html document which includes the words "It works!"
 
-Now we are done with this VM.  Go ahead and exit out of it, then run "vagrant destroy", and navigate back to your development VM.
+Now we are done with this VM.  Go ahead and exit out of it, then run:
+
+```bash
+  $ vagrant destroy
+```
+Return back to your development VM.
 
 # Install Apache with Chef
 
@@ -72,32 +85,32 @@ Then CD into that directory:
 Now, let's create an actual cookbook to manage our Apache installs.
 
 ```bash
-  $ chef generate cookbook cookbooks/apache2_cookbook
+  $ chef generate cookbook cookbooks/my_web_server_cookbook
 ```
 
-Chef automatically generates several files and directories within cookbooks/apache2_cookbook.  Let's take a quick look:
+Chef automatically generates several files and directories within cookbooks/my_web_server_cookbook.  Let's take a quick look:
 
 
 ```bash
-  $ ls cookbooks/apache2_cookbook/
+  $ ls cookbooks/my_web_server_cookbook
   Berksfile  chefignore  metadata.rb  README.md  recipes  spec  test
 ```
 
 Let's open up that metadata.rb file.  Use your preferred text editor (here I use vim).
 
 ```bash
-  $ vim cookbooks/apache2_cookbook/metadata.rb
+  $ vim cookbooks/my_web_server_cookbook/metadata.rb
 ```
 
 You should see content similar to this:
 
 ```bash
-  name             'apache2_cookbook'
+  name             'my_web_server_cookbook'
   maintainer       'The Authors'
   maintainer_email 'you@example.com'
   license          'all_rights'
-  description      'Installs/Configures apache2_cookbook'
-  long_description 'Installs/Configures apache2_cookbook'
+  description      'Installs/Configures my_web_server_cookbook'
+  long_description 'Installs/Configures my_web_server_cookbook'
   version          '0.1.0'
 ```
 
@@ -105,10 +118,10 @@ Change the maintainer and maintainer values to your name and your email respecti
 
 ### Creating a recipe to install Apache
 
-Cookbooks always contain recipes and our's is no different.  When we create a cookbook with the chef generate cookbook command, it auomatically creates a recipes directory.  Even better, there's already a recipe included called "default.rb".  Open up the default.rb recipe with your favorite text editor (here I use Vim).
+Cookbooks always contain recipes and our's is no different.  When we create a cookbook with the chef generate cookbook command, it automatically creates a recipes directory.  Even better, there's already a recipe included called "default.rb".  Open up the default.rb recipe with your favorite text editor (here I use Vim).
 
 ```bash
-  $ vim cookbooks/apache2_cookbook/recipes/default.rb
+  $ vim cookbooks/my_web_server_cookbook/recipes/default.rb
 ```
 
 And insert the following
@@ -140,13 +153,13 @@ Now let's apply that chef recipe we just created using the "chef-client" command
 [TO DO: Explain more about Chef client?]
 
 ```bash
-  $ sudo chef-client --local-mode --runlist 'recipe[apache2_cookbook]'
+  $ sudo chef-client --local-mode --runlist 'recipe[my_web_server_cookbook]'
 ```
 
 Take a look at the output, you should see these lines toward the end:
 
 ```bash
-  Recipe: apache2_cookbook::default
+  Recipe: my_web_server_cookbook::default
     * apt_package[apache2] action install
     - install version 2.4.7-1ubuntu4.4 of package apache2
 ```
@@ -209,7 +222,7 @@ Notice that "-" sign on the apache2 line?  That means the service is not running
 Open up the default recipe in the apache cookbook with your preferred text editor:
 
 ```bash
-  $ vim cookbooks/apache2_cookbook/recipes/default.rb
+  $ vim cookbooks/my_web_server_cookbook/recipes/default.rb
 ```
 
 Then add these lines:
@@ -227,7 +240,7 @@ Save and exit the file, then run chef-client.
 [============BROKEN=================]
 [TODO: For some reason Chef is seeing the service as started, even though we've stopped it and it is not working.  Troubleshoot.]
 ```bash
-  $ sudo chef-client --local-mode --runlist 'recipe[apache2_cookbook]'
+  $ sudo chef-client --local-mode --runlist 'recipe[my_web_server_cookbook]'
 ```
 
 After the run is complete, re-run
@@ -255,7 +268,7 @@ That plus sign means the service is now running!
 We're going to re-create the apache2 cookbook we made earlier, but this time using Test Driven Development methodology.  Go ahead and delete the cookbook you created earlier with:
 
 ```bash
-  $ rm -rf cookbooks/apache2_cookbook
+  $ rm -rf cookbooks/my_web_server_cookbook
 ```
 
 ### Verify Test Kitchen
@@ -279,24 +292,24 @@ You should see output similar to:
 Now let's create the cookbook again, ChefDK will include all the Test Kitchen templates that we need.
 
 ```bash
-  $ chef generate cookbook cookbooks/apache2_cookbook
+  $ chef generate cookbook cookbooks/my_web_server_cookbook
 ```
 
-Open up that metadata.rb file in your apache2_cookbook directory.  Use your preferred text editor (here I use vim).
+Open up that metadata.rb file in your my_web_server_cookbook directory.  Use your preferred text editor (here I use vim).
 
 ```bash
-  $ vim cookbooks/apache2_cookbook/metadata.rb
+  $ vim cookbooks/my_web_server_cookbook/metadata.rb
 ```
 
 You should see content similar to this:
 
 ```bash
-  name             'apache2_cookbook'
+  name             'my_web_server_cookbook'
   maintainer       'The Authors'
   maintainer_email 'you@example.com'
   license          'all_rights'
-  description      'Installs/Configures apache2_cookbook'
-  long_description 'Installs/Configures apache2_cookbook'
+  description      'Installs/Configures my_web_server_cookbook'
+  long_description 'Installs/Configures my_web_server_cookbook'
   version          '0.1.0'
 ```
 
@@ -309,7 +322,7 @@ Test Kitchen specifically uses the name and version attributes.
 Change directories to your apache2 cookbook
 
 ```bash
-  $ cd cookbooks/apache2_cookbook
+  $ cd cookbooks/my_web_server_cookbook
 ```
 
 List all files and directories, including hidden files
@@ -361,7 +374,7 @@ It should look like this:
   suites:
     - name: default
     run_list:
-      - recipe[apache2_cookbook::default]
+      - recipe[my_web_server_cookbook::default]
     attributes:
 ```
 
@@ -405,23 +418,24 @@ Now, open up your .kitchen.yml file and modify it so it looks like this:
 
 ```bash
 ---
-  driver:
-    name: digitalocean
+driver:
+  name: digitalocean
 
-  provisioner:
-    name: chef_zero
+provisioner:
+  name: chef_zero
 
-  platforms:
-    - name: ubuntu-14.04
-    driver:
-      name: digitalocean
-      image: ubuntu-14-04-x64
+platforms:
+  - name: ubuntu-14-04-x64
+  driver_config:
+    region: sfo1
+    private_networking: false
 
-  suites:
-    - name: default
-      run_list:
-      - recipe[apache2_cookbook::default]
-      attributes:
+
+suites:
+  - name: default
+    run_list:
+      - recipe[my_web_server_cookbook::default]
+    attributes:
 ```
 
 Save and close the file.
@@ -487,7 +501,7 @@ Now you'll see this output:
 
 And now we're ready to write and run some tests!
 
-### Writing some tests
+### Checking that Test Kitchen can run our code
 
 First, let's make sure that Test Kitchen can run our code.
 
@@ -514,11 +528,14 @@ Now we'll use Test Kitchen to run this code.  To do this, we use the "kitchen co
 At some point in the output, you should see this:
 
 ```bash
-  Recipe: apache2_cookbook::default
+  Recipe: my_web_server_cookbook::default
     * log[TEST KITCHEN IS RUNNING MY CODE!!!] action write
 ```
 
-Huzzah!  This means Test Kitchen can run our cookbook!  Onto some real cookbook code.
+Huzzah!  This means Test Kitchen can run our cookbook!
 
+### Creating a Test
+
+One of the benefits of Test Driven Development is that it forces you to clarify exactly what you want your code to do before you run it.  Let's clarify that we want our cookbook to install apache2 with a test.
 
 
