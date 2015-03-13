@@ -538,4 +538,425 @@ Huzzah!  This means Test Kitchen can run our cookbook!
 
 One of the benefits of Test Driven Development is that it forces you to clarify exactly what you want your code to do before you run it.  Let's clarify that we want our cookbook to install apache2 with a test.
 
+To do this, we will use something called [ServerSpec].  ServerSpec allows us to write [RSpec](http://rspec.info/) tests (RSpec is a domain specific language used for testing Ruby code).  ServerSpec is automatically included with ChefDK.
 
+Our tests will live in the /test/integration directory of our cookbook.  Go ahead and take a look at the contents of that directory with:
+
+```bash
+  $ ls test/integration
+```
+
+You'll see a directory called "default."  This is where the specs for our default recipe will live.  Go ahead and take a look inside that directory.
+
+```bash
+  $ ls test/integration/default
+```
+
+You'll now see a directory called "serverspec."  There are multiple testing languages that can be used with test kitchen and here is where you would provide directories for each language.  We're using serverspec and the serverspec directory is already there, so we're good to go.
+
+Take a look in the serverspec directory:
+
+```bash
+  $ ls test/integration/default/serverspec
+```
+
+You'll see two files: default_spec.rb and spec_helper.rb.  Open up default_spec.rb:
+
+```bash
+  $ vim test/integration/default/serverspec/default_spec.rb
+```
+
+And you'll see a placeholder spec that looks like this:
+
+```bash
+require 'spec_helper'
+
+describe 'my_web_server_cookbook::default' do
+
+  # Serverspec examples can be found at
+  # http://serverspec.org/resource_types.html
+
+  it 'does something' do
+    skip 'Replace this with meaningful tests'
+  end
+
+end
+```
+
+This is a good guide to how our tests will be structured.  We define the cookbook and recipe we're testing in a "describe block", then we write tests for it within that block.  We define individual specs with "it" blocks.
+
+So let's delete that placeholder spec and replace it with a real spec.
+
+```bash
+require 'spec_helper'
+
+describe 'my_web_server_cookbook::default' do
+
+  # Serverspec examples can be found at
+  # http://serverspec.org/resource_types.html
+
+  describe package('apache2') do
+    it { should be_installed }
+  end
+
+end
+```
+
+Here we're defining a package (apache2), then specifying that it should be installed.
+
+A key factor of Test Driven Development is to write the test first, then run it and make sure it fails before writing the code to make it pass.  This ensures that our test is testing what we think it is.
+
+Let's run 'kitchen list' to make sure that our instance is converged and ready for testing.
+
+```bash
+  $ kitchen list
+```
+
+You should see:
+
+```bash
+  Instance                  Driver        Provisioner  Last Action
+  default-ubuntu-14-04-x64  Digitalocean  ChefZero     Converged
+```
+
+Now let's run our test.
+
+```bash
+  $ kitchen verify
+```
+
+whoops - looks like we got an error.  Rather than running tests, then exiting with a test failure, it has errored out when converging.  Converge installs our Chef recipe on our test instance, only after that does it run the tests.
+
+```bash
+  >>>>>> Converge failed on instance <default-ubuntu-14-04-x64>.
+  >>>>>> Please see .kitchen/logs/default-ubuntu-14-04-x64.log for more details
+  >>>>>> ------Exception-------
+  >>>>>> Class: Kitchen::ActionFailed
+  >>>>>> Message: SSH exited (1) for command: [sh -c '
+  sudo -E /opt/chef/bin/chef-client --local-mode --config /tmp/kitchen/client.rb --log_level auto --force-formatter --no-color --chef-zero-port 8889 --json-attributes /tmp/kitchen/dna.json
+  ']
+  >>>>>> ----------------------
+```
+
+Let's scroll up a bit until we find:
+
+```bash
+  After this operation, 5342 kB of additional disk space will be used.
+  Err http://mirrors.digitalocean.com/ubuntu/ trusty-updates/main apache2-bin amd64 2.4.7-1ubuntu4.1
+  404  Not Found [IP: 198.199.99.226 80]
+  Err http://security.ubuntu.com/ubuntu/ trusty-security/main apache2-bin amd64 2.4.7-1ubuntu4.1
+  404  Not Found [IP: 91.189.91.14 80]
+  Err http://security.ubuntu.com/ubuntu/ trusty-security/main apache2-data all 2.4.7-1ubuntu4.1
+  404  Not Found [IP: 91.189.91.14 80]
+  Err http://security.ubuntu.com/ubuntu/ trusty-security/main apache2 amd64 2.4.7-1ubuntu4.1
+  404  Not Found [IP: 91.189.91.14 80]
+  STDERR: E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-bin_2.4.7-1ubuntu4.1_amd64.deb  404  Not Found [IP: 91.189.91.14 80]
+
+  E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2-data_2.4.7-1ubuntu4.1_all.deb  404  Not Found [IP: 91.189.91.14 80]
+
+  E: Failed to fetch http://security.ubuntu.com/ubuntu/pool/main/a/apache2/apache2_2.4.7-1ubuntu4.1_amd64.deb  404  Not Found [IP: 91.189.91.14 80]
+
+  E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?
+  ---- End output of apt-get -q -y install apache2=2.4.7-1ubuntu4.1 ----
+  Ran apt-get -q -y install apache2=2.4.7-1ubuntu4.1 returned 100
+```
+
+```bash
+  $ kitchen verify
+```
+
+We need to run apt-get update on our test instance before it can find and install the apache2 package.
+
+Let's add that to our default Chef recipe.  Open up the recipe with:
+
+```bash
+  $ vim recipes/default.rb
+```
+
+And add this content:
+
+```bash
+execute 'apt_update' do
+  command "apt-get update"
+  action :run
+end
+```
+
+Looks like we got a failure:
+
+```bash
+  1) my_web_server_cookbook::default Package "apache2" should be installed
+    Failure/Error: it { should be_installed }
+      expected Package "apache2" to be installed
+      /bin/sh -c dpkg-query\ -f\ \'\$\{Status\}\'\ -W\ apache2\ \|\ grep\ -E\ \'\^\(install\|hold\)\ ok\ installed\$\'
+      dpkg-query: no packages found matching apache2
+
+    # /tmp/busser/suites/serverspec/default_spec.rb:9:in `block (3 levels) in <top (required)>'
+
+  Finished in 0.13136 seconds (files took 0.43602 seconds to load)
+  1 example, 1 failure
+```
+
+Excellent!  Our test looks for the apache2 package and, when it doesn't find it, fails.  Now let's make it pass.
+
+Open up recipes/default.rb
+
+```bash
+  $ vim recipes/default.rb
+```
+
+And add this:
+
+```bash
+  package 'apache2' # Installs the apache2 package
+```
+
+Now, run:
+
+```bash
+  $ kitchen converge
+```
+
+To apply the Chef changes to the Test Kitchen instance, then run the test again with:
+
+```bash
+  $ kitchen verify
+```
+
+And you should see:
+
+```bash
+  my_web_server_cookbook::default
+    Package "apache2"
+      should be installed
+
+  Finished in 0.12728 seconds (files took 0.40525 seconds to load)
+  1 example, 0 failures
+
+  Finished verifying <default-ubuntu-14-04-x64> (0m4.17s).
+```
+
+Huzzah! It passes!
+
+Now we can be assured that our Chef recipe will install Apache2 if it's not already installed on any machine it runs on.
+
+Now what if this recipe ran on a server that had Apache2 installed, but did not have the Apache2 service running?  Let's write a test to ensure that our recipe will start up the Apache2 service.
+
+Open up your test file:
+```bash
+  $ vim test/integration/default/serverspec/default_spec.rb
+```
+
+And add this content:
+
+```bash
+  require 'spec_helper'
+
+  describe 'my_web_server_cookbook::default' do
+
+    # Serverspec examples can be found at
+    # http://serverspec.org/resource_types.html
+
+    describe package('apache2') do
+      it { should be_installed }
+    end
+
+    describe service('apache2') do
+      it { should be_running }
+    end
+  end
+```
+
+Now, run:
+
+```bash
+  $ kitchen converge
+```
+
+To apply the Chef changes to the Test Kitchen instance, then run the test again with:
+
+```bash
+  $ kitchen verify
+```
+
+And you should see this output:
+
+```bash
+  my_web_server_cookbook::default
+    Package "apache2"
+      should be installed
+    Service "apache2"
+      should be enabled
+
+  Finished in 0.11753 seconds (files took 0.36669 seconds to load)
+  2 examples, 0 failures
+```
+
+Whoa, looks like it passed the first time.  This is because when Ubuntu 14.04 installs apache2, it also starts the service.  How do we make it fail?
+
+One of the nicest things about Test Kitchen is that you can ssh into a running Test Kitchen instance with this command:
+
+```bash
+  $ kitchen login
+```
+
+Go ahead and run this.  It will log you into the instance as root.  When you get into the instance, run this command:
+
+```bash
+  $ sudo service apache2 stop
+```
+
+Now exit out of the instance and re-run your tests with:
+
+```bash
+  $ kitchen verify
+```
+
+Now we get a failure:
+
+Failures:
+
+```bash
+  1) my_web_server_cookbook::default Service "apache2" should be running
+    Failure/Error: it { should be_running }
+      expected Service "apache2" to be running
+      /bin/sh -c service\ apache2\ status\ \&\&\ service\ apache2\ status\ \|\ grep\ \'running\'
+      * apache2 is not running
+
+    # /tmp/busser/suites/serverspec/default_spec.rb:13:in `block (3 levels) in <top (required)>'
+
+  Finished in 0.15349 seconds (files took 0.42149 seconds to load)
+  2 examples, 1 failure
+```
+
+Open up your default recipe:
+
+```bash
+  $ vim recipes/default.rb
+```
+And add this content:
+
+```bash
+  service 'apache2' do
+    action [:start]
+  end
+```
+
+[TO DO: Should there be a way to simulate the service not working with test kitchen?]
+
+Now re-run the tests with:
+
+```bash
+  $ kitchen converge
+```
+
+Then:
+
+```bash
+  $ kitchen verify
+```
+
+Now our test passes!
+
+Let's add one more test.  Anytime Chef runs on our machine, we want to make sure that apache2 is setup to start anytime the machine boots.
+
+Open up your test file:
+
+```bash
+  $ vim test/integration/default/serverspec/default_spec.rb
+```
+
+And add this content:
+
+```bash
+  require 'spec_helper'
+
+  describe 'my_web_server_cookbook::default' do
+
+    # Serverspec examples can be found at
+    # http://serverspec.org/resource_types.html
+
+    describe package('apache2') do
+      it { should be_installed }
+    end
+
+    describe service('apache2') do
+      it { should be_running }
+
+      it { should be_enabled }
+    end
+  end
+```
+
+Now run the specs with "kitchen verify"
+
+```bash
+  $ kitchen verify
+```
+
+And we get a pass.  We can't write code in our recipe until that test fails.  Login to your kitchen instance with:
+
+```bash
+  $ kitchen login
+```
+
+Then remove apache2 from the boot start up list by running this command:
+
+```bash
+  $ sudo update-rc.d -f apache2 disable
+```
+
+Exit out of your test kitchen instance.
+
+Back in your development environment, run your specs again:
+
+```bash
+  $ kitchen verify
+```
+
+And this time our test fails as expected.
+
+```bash
+  Failures:
+
+  1) my_web_server_cookbook::default Service "apache2" should be enabled
+    Failure/Error: it { should be_enabled }
+      expected Service "apache2" to be enabled
+      /bin/sh -c ls\ /etc/rc3.d/\ \|\ grep\ --\ \'\^S..apache2\'\ \|\|\ grep\ \'start\ on\'\ /etc/init/apache2.conf
+      grep: /etc/init/apache2.conf: No such file or directory
+
+    # /tmp/busser/suites/serverspec/default_spec.rb:15:in `block (3 levels) in <top (required)>'
+
+  Finished in 0.13878 seconds (files took 0.40043 seconds to load)
+  3 examples, 1 failure
+```
+
+Now let's make it pass.  Open up you default recipe:
+
+```bash
+  $ vim recipes/default.rb
+```
+
+And add in this content:
+
+```bash
+  service 'apache2' do
+    action [:start, :enable]
+  end
+```
+
+Then apply the Chef recipe to your instance with:
+
+```bash
+  $ kitchen converge
+```
+
+And run the tests.
+
+```bash
+  $ kitchen verify
+```
+
+And now it passes!
+
+Now we have a test driven apache Chef recipe!
