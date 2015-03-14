@@ -49,9 +49,36 @@ Run:
 Once this is complete, let's verify that Apache is working on this VM.  Run this command:
 
 ```bash
-(VM) $ wget -qO- 127.0.0.1
+  $ wget -qO- 127.0.0.1
 ```
+
 If Apache is installed correctly, the command line will output an html document which includes the words "It works!"
+
+Let's make that home page a little more interesting by adding a custom one.
+
+Open up the file at /var/www/html/ (not that you need to use sudo for this one)
+
+```bash
+  $ sudo vim /var/www/html/index.html
+```
+
+Delete all the content in the file, then add in just this line.
+
+```bash
+  <h1>I AM A CUSTOM PAGE</h1>
+```
+
+Now run the wget command again:
+
+```bash
+  $ wget -qO- 127.0.0.1
+```
+
+And you should see this output:
+
+```bash
+  $ <h1>I AM A CUSTOM PAGE</h1>
+```
 
 Now we are done with this VM.  Go ahead and exit out of it, then run:
 
@@ -188,6 +215,8 @@ You should receive output similar to this:
 
 Excellent, the apache2 package is installed on our development box!
 
+Now, let's add in a custom home page.
+
 ### Starting and Enabling Apache
 
 It's great that we now have Apache installed, but without it doesn't do us any good unless we start the service that manages it.
@@ -239,6 +268,7 @@ Save and exit the file, then run chef-client.
 
 [============BROKEN=================]
 [TODO: For some reason Chef is seeing the service as started, even though we've stopped it and it is not working.  Troubleshoot.]
+
 ```bash
   $ sudo chef-client --local-mode --runlist 'recipe[my_web_server_cookbook]'
 ```
@@ -676,10 +706,10 @@ Let's add that to our default Chef recipe.  Open up the recipe with:
 And add this content:
 
 ```bash
-execute 'apt_update' do
-  command "apt-get update"
-  action :run
-end
+  execute 'apt_update' do
+    command "apt-get update"
+    action :run
+  end
 ```
 
 Looks like we got a failure:
@@ -858,7 +888,7 @@ Then:
 
 Now our test passes!
 
-Let's add one more test.  Anytime Chef runs on our machine, we want to make sure that apache2 is setup to start anytime the machine boots.
+Let's add another test for another expectation of our Chef recipe.  Anytime Chef runs on our machine, we want to make sure that apache2 is setup to start anytime the machine boots.
 
 Open up your test file:
 
@@ -959,4 +989,122 @@ And run the tests.
 
 And now it passes!
 
-Now we have a test driven apache Chef recipe!
+Finally, let's add in a custom home page.  First, a test.  Open up your test file:
+
+```bash
+  $ vim test/integration/default/serverspec/default_spec.rb
+```
+
+And add this content:
+
+```bash
+  require 'spec_helper'
+
+  describe 'my_web_server_cookbook::default' do
+
+    # Serverspec examples can be found at
+    # http://serverspec.org/resource_types.html
+
+    describe package('apache2') do
+      it { should be_installed }
+    end
+
+    describe service('apache2') do
+      it { should be_running }
+
+      it { should be_enabled }
+    end
+
+    describe file('/var/www/html/index.html') do
+      its(:content) { should match /<h1>I AM A CUSTOM PAGE<\/h1>/ }
+    end
+end
+```
+
+Now run the test:
+
+```bash
+  $ kitchen verify
+```
+
+The output is very verbose for this failure, the sum of it is it hasn't found the content it expected to find.
+
+To place this content in that file with Chef, we need to add a template.  Chef offers a convenient generator method for creating a template.
+
+Make sure you're back in the root directory for you Chef repo:
+
+```bash
+  $ cd ~/my_web_server_chef_repo
+```
+
+Then run:
+
+```bash
+  $ chef generate template cookbooks/my_web_server_cookbook index.html
+```
+
+Then change directories back into your my_web_server_cookbook cookbook
+
+```bash
+  $ cd cookbooks/my_web_server_cookbook
+```
+
+When you ran that generate command above, it placed a file in the templates directory of your cookbook.  Take a look at the templates directory:
+
+```bash
+  $ ls templates/default
+```
+
+You should see a file called "index.html.erb"  This is the template for your custom hope page.  Go ahead and open it up:
+
+```bash
+  $ vim templates/default/index.html.erb
+```
+
+And add this content:
+
+```bash
+  <h1>I AM A CUSTOM PAGE</h1>
+```
+
+Then save and close the file.
+
+Now let's reference this template in our default recipe.  Open it with:
+
+```bash
+  $ vim recipes/default.rb
+```
+
+And add this content:
+
+```bash
+  template '/var/www/html/index.html' do
+    source 'index.html.erb'
+  end
+```
+
+Then save and close the file.
+
+Now converge:
+
+```bash
+  $ kitchen converge
+```
+
+The run your tests with:
+
+```bash
+  $ kitchen verify
+```
+
+And our test passes!
+
+Let's do one final run - destroying this instance, creating a new instance, converging Chef, and running the tests.  Test Kitchen has a one stop command for all of these things.  Run:
+
+```bash
+  $ kitchen test
+```
+
+It'll take a bit to run, but by the end you should see all specs passing.
+
+Now we have a test driven Chef recipe to install Apache!
