@@ -1,6 +1,6 @@
 # Finding IMPLICIT app dependencies
 
-All the stuff no one thought of.
+All the stuff no one thought of when they were writing the app on their desktop, but will be needed when running it in the real world.
 
 ## Problem
 
@@ -11,14 +11,33 @@ came in.  But is that really everything?
 
 What else is needed to live with the app in production?
 
-Assume you are deploying to (TODO: selected cloud provider).  What
+Assume you are deploying to DigitalOcean.  What
 else do you need - services, plans, and configuration - to stand up the systems?
+
+
+Try thinking a bit about these abilities:
+
+* Accessible
+* Available
+* Deployable
+* Diagnosable
+* Monitorable
+* Promotable
+* Recoverable
+* Scalable
+* Securable
+* Testable
+
 
 ## Discussion
 
-TODO - solution.md
+What did we identify as certainly missing?
 
-## Theory
+What is missing in apps at your day job?  When are these gaps discovered?
+
+What will we have time to cover today?
+
+## Enrichment
 
 ### Meet The Ables
 
@@ -103,20 +122,41 @@ You need to be able to clearly know which version of the code is in each environ
 
 #### Recoverable
 
-TODO - I accidentally the data
+In the event of a disaster, can business operations resume?
+
+* What kind of disaster?
+  * Hacked!
+  * Datacenter full of snakes with sudo
+  * Teensy bug in application that deletes all the data, backup system faithfully follows suit
+* How long can you tolerate before data is restored?
+* How much data can be outright lost?
+* How often will you drill your recovery procedure?
+* How does your retention policy play ball with regulatory constraints (PCI, SOX, HIPAA, EU....)
 
 #### Scalable
 
-TODO - both more of the things and less of the things.  Predict cost,
-align cost to demand, decide how auto the autoscaling should be
+If the business grows suddenly, can the system grow to match?
+
+* How automatic should the autoscaling be?  How would you detect a surge event?
+* Do you plan to reserve instances?
+* What if it shrinks? 
+* Can you predict cost?
 
 #### Securable
 
-TODO - "Seems Legit"
+How do you manage the real risks to the business without impeding the staff's ability to make changes?
+* What's a "real" risk, anyway?  Whose idea of risk are we dealing with?  Will there be 3rd party scans?
+* Do you have objectivity here?
+* What are the egress and ingress points?  Can the app de decomposed into tiers?  which middleware parts need to speak to which other parts?
+* SSL thruought?  Still trust SSL?
+* How often will you rotate passowrds, keys, etc?  How will you do that without locking yourself or others out?
 
 #### Testable
 
-TODO - how do we prevent passing defective work down the line?  Infra
-is code, infra must be testable.  Ephemeral machines, ephemeral test
-envs.  Longevity testing; Decker did you see the incept date?
+Po one's nerfect, and mistakes are bound to happen.  How do we catch them as early as possible?
+* Is there a code testing setup (CI server)?  Can ops use it?
+* If infrastructure is code, and code should be tested, are you going to test the infrasructure?  How will you do that?
+* How will you mock 3rd party services?
+* Ephermeral testing is one thing, how will you do longevity testing?
+* Can you do canary testin during deployment?
 

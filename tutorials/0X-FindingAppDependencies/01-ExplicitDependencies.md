@@ -35,9 +35,8 @@ We have access to the source code for the application we are to
 deploy, but the developers are too busy adding new features to go over
 any of it with us.  What can we learn by just diving in and reading?
 
-
 TODO: instructions on CD'ing to the widgetworld source code
-deirectory, and tell them to use more, tree, etc to read.  Teams might
+directory, and tell them to use more, tree, etc to read.  Teams might
 divide and conquer.  Individuals with some Rails should train others.
 
 ## What Happened?
@@ -46,7 +45,7 @@ Free-form discussion.  See solutions.md file for everything Clinton
 gleaned. 
 
 
-## Far More Than You Ever Wanted To Know
+## Enrichment
 
 To be covered deeply, lightly, or skipped, time allowing.
 
