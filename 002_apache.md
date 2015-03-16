@@ -56,7 +56,7 @@ If Apache is installed correctly, the command line will output an html document 
 
 Let's make that home page a little more interesting by adding a custom one.
 
-Open up the file at /var/www/html/ (not that you need to use sudo for this one)
+Open up the file at /var/www/html/ using your preferred text editor (here I use vim) (note that you need to use sudo for this one).
 
 ```bash
   $ sudo vim /var/www/html/index.html
