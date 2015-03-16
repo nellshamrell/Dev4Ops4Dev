@@ -456,9 +456,9 @@ provisioner:
 
 platforms:
   - name: ubuntu-14-04-x64
-  driver_config:
-    region: sfo1
-    private_networking: false
+    driver_config:
+      region: sfo1
+      private_networking: false
 
 
 suites:
