@@ -24,7 +24,7 @@ Then spin up the Vagrant VM.
 
 Then SSH into the VM
 
-[TO DO: Add any special instructions for Windows]
+[NOTE - If you are on Windows, use Putty to SSH into your VM]
 
 ```bash
   vagrant ssh
