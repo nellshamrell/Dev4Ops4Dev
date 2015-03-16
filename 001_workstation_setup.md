@@ -131,10 +131,10 @@ Look around!  Your development machine should have some tools - some familiar, s
   vagrant@d4o4d-workshop $ for cmd in "nano vim emacs git vagrant tugboat chef rubocop foodcritic rspec"; do $cmd --version; done
 ```
 
-Also notice that the prompt has changed:
+Also notice that the prompt has changed, indicating that you on another machine - VM within your laptop!:
 
 ```bash
-  vagrant@d4o4d-workshop $
+  vagrant@d4o4d-workshop $ uname -a
 ```
 
 
@@ -143,7 +143,7 @@ Also notice that the prompt has changed:
 
 At this point, you only need to know a bit about Vagrant.  We'll add more as we go along.
 
-### The Vagrant Direcotry Mount
+### The Vagrant Directory Mount
 
 You can pass files directly into and out of your vagrant instance using the /vagrant area, which is mounted on the directory on the host containing the Vagrantfile.
 
@@ -175,7 +175,7 @@ Force-halts the guest, then deletes the instance or disk image.  No going back -
 
 And that sets up your development environment for this workshop!  Now onto using it!
 
-## Enrichement
+## Enrichment (Optional)
 
 ### How did we make the workshop box?
 
