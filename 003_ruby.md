@@ -204,19 +204,31 @@ There will be lots of output, but at the end you'll see:
 
 The [rvm cookbook GitHub Page](https://github.com/martinisoft/chef-rvm) has good instructions on how to use the community cookbook to install RVM and Ruby.
 
-[==========broken===========]
+First, let's create a couple of tests.  The first will ensure that rvm is installed, and the second will ensure that Ruby 2.1.3 is installed through rvm.
+
+[TO DO: Explain why we need to use 'bash -l -c' with Test Kitchen and ServerSpec]
+
 ```bash
   require 'spec_helper'
 
   describe 'my_web_server_cookbook::ruby' do
-    describe command('rvm -v') do
+    describe command('bash -l -c rvm -v') do
       its(:stdout) { should match /rvm 1.26.10 \(latest\) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> \[https:\/\/rvm.io\/\]/ }
+    end
+
+    describe command('bash -l -c "rvm list"') do
+      its(:stdout) { should match /ruby-2.1.3/ }
     end
   end
 ```
-[==========/broken===========]
 
-Open up your recipe file and add in this content:
+First, let's run those tests and watch them fail:
+
+```bash
+  $ kitchen verify
+```
+
+Now open up your recipe file and add in this content to make the tests pass:
 
 ```bash
   rvm_ruby "ruby-2.1.3" do
@@ -230,24 +242,10 @@ Now apply the Chef changes:
   $ kitchen converge
 ```
 
-Now ssh into your kitchen instance
+And run the tests again:
 
 ```bash
-  $ kitchen login
-```
-
-And run this command:
-
-```bash
-  $ rvm list
-```
-
-You should see output similar to this:
-
-```bash
-  rvm rubies
-
-   * ruby-2.1.3 [ x86_64 ]
+  $ kitchen verify
 ```
 
 Ruby and RVM are working!
