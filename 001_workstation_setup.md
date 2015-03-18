@@ -48,27 +48,6 @@ Create a new folder to host your workshop material.  Call it whatever you like, 
 
 Hold down shift and right click on the project folder, then select "open command window here"
 
-If you receive the error "Timed out while waiting for the machine to boot", follow these instructions:
-
-1) Open up the VagrantFile in your project directory with Notepad (it's easiest do do this OUTSIDE of the command prompt)
-2) Add these lines in between "Vagrant.configure(2) do |config|" and "end" lines
-
-  ```bash
-   config.vm.provider :virtualbox do |vb|
-     vb.gui = true
-   end
-  ```
-3) Save the file
-4) Navigate back to your command prompt
-5) Destroy the previous Vagrant virtual machine with this command
-
-  ```bash
-    $ vagrant destroy
-  ```
-6) The start the
-
-Source: this [Stack Overflow Answer](http://stackoverflow.com/a/22575302).
-
 Head on down to the "Using Vagrant" section of these instructions.
 
 ### Windows 8.1
@@ -121,7 +100,11 @@ This will log you into your Vagrant box as the user 'vagrant', which has passwor
 
 ### Windows 7 or 8.1
 
-[ TODO ]
+Logging into a Vagrant box from Windows is a little more complicated, because windows does not come with an SSH command line client.
+
+Zack Wallace has a fantastic blog post called ["Getting Started with Vagrant on Window"](http://www.sitepoint.com/getting-started-vagrant-windows/).  Follow the instructions in the "Now I Can Access my Server, Right?" section to ssh into your Vagrant box.
+
+## Updating your system
 
 ## Look around
 
