@@ -73,7 +73,7 @@ NOTE: if you already have a keypair and a github account, you can skip this; jus
   vagrant@d4o4d-workshop $ ls -l ~/.ssh/
 ```
 
-IMPORTANT - If anyone asks you to "Send me your SSH key", they are asking for the PUBLIC key - the .pub file.  Never share the other file!
+IMPORTANT - If anyone asks you to "Send me your SSH key", they are asking for the PUBLIC key - the .pub file.  Never share the other file, called the private key!
 
 #### Start your SSH Agent
 
@@ -131,9 +131,23 @@ If you have not already done so, create a [Github account](https://github.com/).
 
 Once you have a github account, you will need to add your *public* SSH key to it.  Follow Github's instructions (https://help.github.com/articles/generating-ssh-keys/#step-4-add-your-ssh-key-to-your-account).
 
-## Forking a Repo
+## Forking and Cloning a Repo
 
-TODO
+### Fork to make your own copy of the code
+
+On the github website, make sure you are logged in.  Then find Nell's widgetworld repo, by searching for nellshamrell/widgetworld.  CLick the big Fork button!
+
+Note: "fork" is not a 'git' command - it's a term used by Git hosting companies to represent a sever-side clone.
+
+#### Sidebar: It's OK to Fork
+
+In the past, when a project "forked," that meant there had been a rift in the project leadership, and a splinter faction had broken off, to create their own vision of the software.  A fork was irreversible, and divided communities.  With Github, forks are routine.  It simply means you are a making your own copy to work on, and it's easy to send your work back "upstream" to the original project - or, you can choose never to send your changes back upstream, while still receiving changes from the upstream project.  Popular projects like Chef might have thousands of forks!  Fork casually - it's no big deal.
+
+### Clone to download the code from the git hosting service
+
+You're now ready to fetch the code from the git hosting service Github, to your development machine.
+
+
 
 ## Making Changes
 
