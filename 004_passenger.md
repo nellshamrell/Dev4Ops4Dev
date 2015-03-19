@@ -250,57 +250,61 @@ passenger_recipe.rb
 ```bash
 include_recipe 'my_web_server_cookbook::ruby'
 
+package 'apache2-threaded-dev'
+
+package 'ruby-dev'
+
+package 'libapr1-dev'
+
+package 'libaprutil1-dev'
+
 gem_package 'passenger' do
   action :install
-  end
+end
 
-  package 'apache2-threaded-dev'
+execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
+  action :run
+  not_if { ::File.exists?("/swap")}
+end
 
-  package 'ruby-dev'
+execute "sudo mkswap /swap" do
+  action :run
+  not_if { ::File.exists?("/swap")}
+end
 
-  package 'libapr1-dev'
+execute "sudo swapon /swap" do
+  action :run
+  not_if { ::File.exists?("/swap")}
+end
 
-  package 'libaprutil1-dev'
+execute 'passenger-install-apache2-module' do
+  command "sudo passenger-install-apache2-module --auto"
+  action :run
+  not_if { ::File.exists?("/var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/apache2/mod_passenger.so")}
+end
 
-  execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
-    action :run
-  end
+template '/etc/apache2/apache2.conf' do
+  source 'apache2.conf.erb'
+end
 
-  execute "sudo mkswap /swap" do
-    action :run
-  end
-
-  execute "sudo swapon /swap" do
-    action :run
-  end
-
-  execute 'passenger-install-apache2-module' do
-    command "sudo passenger-install-apache2-module --auto"
-    action :run
-  end
-
-  template '/etc/apache2/apache2.conf' do
-    source 'apache2.conf.erb'
-  end
-
-  service 'apache2' do
-    action [:restart]
-  end
+service 'apache2' do
+  action [:restart]
+end
 ```
 
 passenger_spec.rb
 ```bash
-  require 'spec_helper'
-  describe 'my_web_server_cookbook::passenger' do
-    describe command('gem list') do
-      its(:stdout) { should match /passenger/ }
-    end
+require 'spec_helper'
+describe 'my_web_server_cookbook::passenger' do
+describe command('gem list') do
+its(:stdout) { should match /passenger/ }
+end
 
-    describe package('apache2-threaded-dev') do
-      it { should be_installed }
-    end
+describe package('apache2-threaded-dev') do
+  it { should be_installed }
+end
 
-    describe package('ruby-dev') do
+  describe package('ruby-dev') do
       it { should be_installed }
     end
 
