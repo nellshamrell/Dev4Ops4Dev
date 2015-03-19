@@ -12,7 +12,7 @@ Let's generate a new recipe like so:
   $ chef generate recipe passenger
 ```
 
-## Test Drive Installing Passenger with Chef
+## Installing the Passenger gem
 
 Were we installing Passenger by hand, we would run this command to install it through Ruby Gems (a very commonly used repo of Ruby libraries)
 
@@ -103,6 +103,8 @@ Now let's add the code to make this test pass.
 
 Open up the recipe file:
 
+[===================== broken =======================]
+[Not installing gem properly, needs to be installed manually]
 ```bash
   $ vim recipes/passenger.rb
 ```
@@ -114,4 +116,146 @@ And add in this content:
     action :install
   end
 ```
+
+Then apply the Chef changes to your test instance:
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+And run the tests again:
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And they pass!
+[===================== /broken =======================]
+
+## Installing Passenger dependencies
+
+Passenger requires several packages to work with Apache.
+
+```bash
+  apache2-threaded-dev, ruby-dev, libapr1-dev, libaprutil1-dev
+```
+
+Let's add in tests for each of these packages.
+
+Open up the test file:
+
+```bash
+  $ vim test/integration/passenger/serverspec/passenger_spec.rb
+```
+
+And add in the following content:
+
+```bash
+    describe package('apache2-threaded-dev') do
+      it { should be_installed }
+    end
+
+    describe package('ruby-dev') do
+      it { should be_installed }
+    end
+
+    describe package('libapr1-dev') do
+      it { should be_installed }
+    end
+
+    describe package('libaprutil1-dev') do
+      it { should be_installed }
+    end
+```
+
+Then save and close the file and run the tests.
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And they should fail.
+
+Open up your recipe file.
+
+```bash
+  $ vim recipes/passenger.rb
+```
+
+And add in this content:
+
+```bash
+  package 'apache2-threaded-dev'
+
+  package 'ruby-dev'
+
+  package 'libapr1-dev'
+
+  package 'libaprutil1-dev'
+```
+
+Save and close the file.  Then apply the Chef changes to your test instance:
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+And run the tests:
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And the should pass.
+
+## Configuring Passenger to work with Apache
+
+Now let's install the module which will allow passenger to work with Apache
+
+### Installing more swap memory
+
+[TO DO: Add test for this and explain it more]
+
+Add this to your recipe file:
+
+```bash
+
+  execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
+    action :run
+  end
+
+  execute "sudo mkswap /swap" do
+    action :run
+  end
+
+  execute "sudo swapon /swap" do
+    action :run
+  end
+```
+
+Save and close the file.
+
+Now it's time to create an apache config file template.  Let's generate a template using this command:
+
+```bash
+  $ chef generate template cookbooks/my_web_server_cookbook apache2.conf
+```
+
+passenger_recipe.rb
+```bash
+template '/etc/apache2/apache2.conf' do
+  source 'apache.conf.erb'
+end
+```
+
+passenger_spec.rb
+```bash
+describe file('/etc/apache2/apache2.conf') do
+  it { should be_file }
+
+  its(:content) { should match /LoadModule passenger_module \/var\/lib\/gems\/1.9.1\/gems\/passenger-5\.0\.4\/buildout\/apache2\/mod_passenger.so/ }
+end
+```
+
+templates/default/apache2.conf.erb
 
