@@ -1,6 +1,10 @@
 #!/bin/bash
 
+# TODO: upload 0.2.0 box, update URL
 BOX_URL="https://www.dropbox.com/s/6irjzpjwhnlbmok/dev4ops4dev-workshop-0.1.0.box?dl=0"
+
+# TODO: windows aux tools
+# http://the.earth.li/~sgtatham/putty/latest/x86/putty-0.64-installer.exe
 
 if true; then
     echo "=================================="
