@@ -449,7 +449,7 @@ You should see:
 Now let's run our test.
 
 ```bash
-  vagrant@workshop widget-chef apache$ kitchen verify
+  vagrant@workshop apache$ kitchen verify
 ```
 
 As expected, this fails:
@@ -474,8 +474,6 @@ As expected, this fails:
 ```
 
 Commit your work - having a RED test is a good thing, at this point.
-
-Commit your work:
 
 ```bash
   vagrant@workshop apache $ git commit -m "TDD RED for apache2 package installation" test/integration/default/serverspec/default_spec.rb
@@ -532,7 +530,102 @@ Commit your work, this is a key checkpoint:
 
 ### A cookbook to deploy the widgetworld app
 
+Now let's make a cookbook that will deploy the widgetworld app, relying on the other cookbooks.
+
+```bash
+  vagrant@workshop widget-chef $ chef generate cookbook cookbooks/widgetworld-app
+  vagrant@workshop widget-chef $ git add cookbooks/widgetworld-app/
+  vagrant@workshop widget-chef $ git commit -m "Initial generation of widgetworld-app cookbook"
+  vagrant@workshop widget-chef $ cd cookbooks/widgetworld-app/
+```
+
+Now, open up your .kitchen.yml file and modify it so it looks like this:
+
+```bash
+  vagrant@workshop widgetworld-app $ vim .kitchen.yml
+```
+
+
+```bash
+---
+driver:
+  name: digitalocean
+
+provisioner:
+  name: chef_zero
+
+platforms:
+  - name: ubuntu-14-04-x64
+    driver_config:
+      region: sfo1
+      private_networking: false
+
+
+suites:
+  - name: default
+    run_list:
+      - recipe[widgetworld-app::default]
+    attributes:
+```
+
+Save and close the file.
+
+
+Ask kitchen to prep the instance:
+
+```bash
+  vagrant@workshop widgetworld-app $ kitchen setup
+```
+
+Commit your changes:
+
+```bash
+  vagrant@workshop widgetworld-app $ git commit -m "Switch Test Kitchen to use Digital Ocean" .kitchen.yml
+```
+
 #### TDD Red: What does widgetworld look like?
+
+Well, it's a rails app.  The code should be deployed on the filesystem, and it should respond on port 80, with something that is not the Apache homepage. [ TODO - need an app-specific real response ]
+
+Let's express that in serverspec.
+
+```bash
+  vagrant@workshop widgetworld-app$ vim test/integration/default/serverspec/default_spec.rb
+```
+
+First let's add the code deployment.
+
+```bash
+  describe file('/opt/widgetworld') do
+    it { should be_directory }
+  end
+```
+
+Next, let's add the port 80 requirement.
+
+```bash
+  describe port(80) do
+    it { should be_listening }
+  end 
+```
+
+Finally, try HTTP, and see what we got back.
+
+```bash
+  describe command('curl http://127.0.0.1') do
+    its(:exit_status) { should eq 0 }
+    its(:stdout) { should_not match(/Apache/) }
+  end
+```
+
+All of that should fail.
+
+Commit your changes:
+
+```bash
+  vagrant@workshop widgetworld-app $ git commit -m "TDD RED - Web app deployment checks" test/integration/default/serverspec/default_spec.rb
+```
+
 
 #### TDD Green: Making it run
 
