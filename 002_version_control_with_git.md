@@ -157,6 +157,10 @@ You're now ready to fetch your copy of the code from the git hosting service Git
 
 If you visit the project page at https://github.com/YOUR_GITHIB_USERNAME/widgetworld , you'll see a "SSH git clone URL" textbox in the right sidebar.  That's where you will find the repo address you can use to clone.
 
+NOTE 1: You'll almost always want the "SSH" url, not the HTTPS or Subversion repo URL.
+
+NOTE 2: When running the next command, you will likely get an SSH unknown host challenge.  Respond that Yes, you would like to continue connecting.
+
 ```bash
   vagrant@workshop $ git clone git@github.com:YOUR_GITHUB_USERNAME/widgetworld.git
 ```
@@ -171,10 +175,20 @@ And git should think that it is unmodified:
 
 ```bash
   vagrant@workshop $ cd widgetworld
-  vagrant@workshop $ git status
+  vagrant@workshop widgetworld$ git status
   On branch master.
   Everything up to date.
 ```
+
+Git also knows where the code came from.  Git repos that are able to be accessed over the network are called remotes, and the remote from which you got the code is called (by default) 'origin'.
+
+```bash
+  vagrant@workshop widgetworld $ git remote -v
+   origin	git@github.com:clintoncwolfe/widgetworld.git (fetch)
+   origin	git@github.com:clintoncwolfe/widgetworld.git (push)
+```
+
+This says that Clinton's github account, widgetworld repo, will be used for sending and receiving updates.
 
 ## Making Changes
 
@@ -186,25 +200,163 @@ First, whenever you need to make a group of related changes, you should do it on
 
 A branch is an efficient copy of the code, that lets you make changes without affecting the mainline of development.  This is important, beause you may need to work on several branches at once, switching between them.
 
-
+```bash
+  vagrant@workshop widgetworld $ git checkout -b 'add-myself-to-readme'
+```
 
 ### Make the change
 
+OK, now we can edit files, and they will be on the new branch.
+
+Use your favorite Unix editor - vim, emacs, joe, and nano are all installed.  If you have no idea what these mean, use nano.
+
+```bash
+  vagrant@workshop widgetworld $ nano README.rdoc
+  # Add an AUTHORS section
+  # Add Nell        # TODO - Nell should probably add this ahead of time, or create a AUTHORS file
+  # Add yourself
+```
+
+### Ask git what it thinks is going on
+
+We made a change.  What does git think?
+```
+  vagrant@workshop widgetworld $ git status
+  On branch add-myself-to-readme
+  Changes not staged for commit:
+    (use "git add <file>..." to update what will be committed)
+    (use "git checkout -- <file>..." to discard changes in working directory)
+
+  	modified:   README.rdoc
+
+  no changes added to commit (use "git add" and/or "git commit -a")
+```
+
+So, git sees that a file is changed, but has no plans to commit them.  It suggests we use 'add' to include them in the commit.
+
+```
+  vagrant@workshop widgetworld $ git add README.rdoc
+  vagrant@workshop widgetworld $ git status
+  On branch add-myself-to-readme
+  Changes to be committed:
+    (use "git reset HEAD <file>..." to unstage)
+
+	modified:   README.rdoc
+```
+
 ### Commit the change
 
+OK, now we commit the change - telling git that it should consider this a "checkpoint".
+
+```
+  vagrant@workshop widgetworld $ git add README.rdoc
+  vagrant@workshop widgetworld $ git commit -m "Adding myself to README"
+  [add-myself-to-readme 3c903fb] Adding myself to README
+    1 file changed, 4 insertions(+)
+  vagrant@workshop widgetworld $ git status
+   On branch add-myself-to-readme
+   nothing to commit, working directory clean
+```
 
 ## Publishing Changes
 
+Great!  Let's check a few things.
+
 ### Check master for the change
+
+So, we were working on a branch.  Did the "main" line of code get affected?  Let's swtich branches (using the 'checkout' command) back to the main line, usually called 'master'.
+
+```
+  vagrant@workshop widgetworld $ git checkout master
+   Switched to branch 'master'
+   Your branch is up-to-date with 'origin/master'.
+  vagrant@workshop widgetworld $ more README.rdoc
+
+```
+
+Is the file changed?  So, you see you can use branches to do experiments without affecting the main line.
 
 ### Check github for the change
 
+Take a moment to look at your Github page.  You'll notice that your changes are not there yet - nor are they in Nell's.
+
 ### Push the change
+
+To publish the change to another git repo (including those on hosting servers like github), we use the 'push' command, specifying which branch to push, and which remote to push to.
+
+Note that git doesn't care what branch you are currently on;  if you explicitly name a branch it push, it will gather those changes and send them without affecting anything in your directory.
+
+
+```
+  vagrant@workshop widgetworld $ git push origin add-myself-to-readme
+  Counting objects: 5, done.
+  Compressing objects: 100% (3/3), done.
+  Writing objects: 100% (3/3), 318 bytes | 0 bytes/s, done.
+  Total 3 (delta 2), reused 0 (delta 0)
+  To git@github.com:clintoncwolfe/widgetworld.git
+   * [new branch]      add-myself-to-readme -> add-myself-to-readme
+```
+
+Notice that git thinks of that as a new branch on the remote.
 
 ### Check github for the change, again
 
-TODO
+Take a look at your github repo page.  You should see that you have a new branch!
 
 ## Submitting to the Maintainer
 
-TODO
+You're a generous person, and you want to share your hard work with the world.  You'd like to make it easy for Nell to accept your changes.
+
+In hosted git like github and bitbucket, this action is called "submitting a pull request".  You're asking Nell to receive changes from you - the opposite of a push, a 'pull'.
+
+In the github web UI, you shoudl see several opportunities to create a PR.  Go ahead and submit one, and describe why you think it is valuable.
+
+Nell will get notifications that people want to contribute code.  As the maintainer, she can comment on your changes, request you make refinements (which you would do by pushing to your branch), and finally, accept or reject the PR.
+
+This mechanism is how most Free and Open Source Software is developed.
+
+## Merging to your master
+
+But you don't hve to wait for Nell!  You run your own copy of the code, and can merge your branch back to your own master, if you wish to.
+
+### Checking for upstream changes
+
+If you're working on a shared repo, it's likely that master may have been updated.  Before merging a branch, it's your responsiblity to make sure that it is up to date as regards any changes.
+
+First, let's make sure we have a fresh copy of your team's work.
+
+```
+  vagrant@workshop widgetworld $ git checkout master  # Switch to master branch
+  vagrant@workshop widgetworld $ git pull master      
+```
+
+'pull' Downloads and merges any changes from your team to your master branch.
+
+Next, let's make sure your topic branch is compatible with the latest changes.
+
+```
+  vagrant@workshop widgetworld $ git checkout add-myself-to-readme
+  vagrant@workshop widgetworld $ git rebase master
+```
+
+'rebase' and 'merge' do nearly the same thing; both pull the changes from the master branch into your topic branch (rebase simply pretends that all of master's changes happened "before" your changes, which can result in a cleaner history, but is much more likely to fail).  Different development teams have different, strong opinions about this.
+
+At this point, you would test, and ensure that your changes work as expected.
+
+### Merge to master
+
+```
+  vagrant@workshop widgetworld $ git checkout master
+  vagrant@workshop widgetworld $ git merge add-myself-to-readme
+```
+
+This says that the work on the topic branch is largely done, and the code changes should now be pulled into the main line.
+
+This is a big deal; on some development teams, only the team lead, or a test drone, is allowed to merge to master.  
+
+Be sure to push after you merge!
+
+# Next Steps
+
+We now have the code of a web application, but no idea what it does or what it needs to run.  Let's start exporing the application dependencies!
+
