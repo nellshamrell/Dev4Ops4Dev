@@ -49,10 +49,10 @@ The most common workflow is something like this:
  3. You check the LICENSE and verify it's something you can contribute to. 
  4. You *fork* Nell's repo.  You now have a complete copy of the code in your github account.
  5. You *clone* your own copy of the repo to your computer.  Now you can locally edit the files.
- 6. You *branch* the code, naming it "more-cowbell".  This lets you work on the more-cowbell feature, but if it takes longer than you thought, you can switch back to the regular, "master" branch anytime, then continue cowbell later.
+ 6. You *branch* the code, naming it "add-myself-to-readme".  This lets you work on the feature, but if it takes longer than you thought, you can switch back to the regular, "master" branch anytime, then continue later.
  7. You keep *commit* as you go, in chunks of work that make sense, and hopefully leave the code in a working state after each commit.
- 8. You *push* to send the changes from your development machine to your github account for safekeeping.  Until you push, the changes only exist on your machine - no matter how many time you comittted!
- 9. When you think you want Nell to look at it, you issue a *pull request*, asking Nell to *pull* from your more-cowbell bracch to her master branch.  Discussion may ensue, and you can revise your PR by continuing to commit to your branch.
+ 8. You *push* to send the changes from your development machine to your github account for safekeeping.  Until you push, the changes only exist on your machine - no matter how many times you comittted!
+ 9. When you think you want Nell to look at it, you issue a *pull request*, asking Nell to *pull* from your add-myself-to-readme branch to her master branch.  Discussion may ensue, and you can revise your PR by continuing to commit to your branch.
 
 Let's try all that!
 
@@ -87,7 +87,7 @@ First, let's see if your SSH agent is running.
 
 If you see 'Could not establish a connection with your agent', that means it is not running (nearly any other result means it is.)
 
-To start ssh-agent, run:
+If you need to start ssh-agent, run:
 
 ```bash
   vagrant@workshop $ eval $(ssh-agent)
@@ -136,6 +136,8 @@ First, we'll copy the new public key from your workshop VM onto your laptop.
 ```bash
   vagrant@workshop $ cp ~/.ssh/id-rsa.pub /vagrant/github-ssh-public-key.pub
 ```
+
+You should find that github-ssh-public-key.pub in the same directory as the workshop Vagrantfile.
 
 Follow Github's instructions (https://help.github.com/articles/generating-ssh-keys/#step-4-add-your-ssh-key-to-your-account).
 
@@ -274,7 +276,7 @@ So, we were working on a branch.  Did the "main" line of code get affected?  Let
 
 ```
 
-Is the file changed?  So, you see you can use branches to do experiments without affecting the main line.
+Is the file changed?  It shouldn't be!  So, you see you can use branches to do experiments without affecting the main line.
 
 ### Check github for the change
 
