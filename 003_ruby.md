@@ -8,6 +8,93 @@ Let's generate a new recipe like so:
   $ chef generate recipe ruby
 ```
 
+## Installing a base Ruby
+
+We need to install a base version of Ruby for our system to use (though we will later be managing Ruby versions through RVM).  First, let's write a test:
+
+Open up your test file:
+
+```bash
+  $ vim test/integration/ruby/serverspec/ruby_spec.rb
+```
+
+ And add in this content:
+
+```bash
+  require 'spec_helper'
+   describe 'my_web_server_cookbook::ruby' do
+     describe package('ruby') do
+       it { should be_installed }
+     end
+   end
+```
+
+Now we need to add this test suite to our .kitchen.yml file so Test Kitchen will run it.
+
+Open up you .kitchen.yml file
+
+```bash
+  $ vim .kitchen.yml
+```
+
+And add this content:
+
+```bash
+suites:
+  - name: default
+    run_list:
+      - recipe[my_web_server_cookbook::default]
+    attributes:
+  - name: ruby
+    run_list:
+      - recipe[my_web_server_cookbook::ruby]
+    attributes:
+```
+
+Next you'll need to create a new test instance for the new suite:
+
+```bash
+  $ kitchen create ruby-ubuntu-14-04-x64
+```
+
+And then set it up with Chef:
+
+```bash
+  $ kitchen setup ruby-ubuntu-14-04-x64
+```
+
+Now, run the tests:
+
+```bash
+  $ kitchen verify ruby-ubuntu-14-04-x64
+```
+```
+
+And you should see a failure.  Now open your recipe file:
+
+```bash
+  $ vim recipes/ruby.rb
+```
+ And add in this content:
+
+```bash
+  $ package ruby
+```
+
+Now apply the Chef changes to your kitchen instance:
+
+```bash
+  $ kitchen converge ruby-ubuntu-14-04-x64
+```
+
+And run your test again:
+
+```bash
+  $ kitchen verify ruby-ubuntu-14-04-x64
+```
+
+And it should pass!
+
 ## Installing Ruby Dependencies
 
 Ruby depends on several packages already being installed:
@@ -24,8 +111,6 @@ Now let's create a test for each of these packages.  Open up the test file:
  And add in this content:
 
 ```bash
-  require 'spec_helper'
-   describe 'my_web_server_cookbook::ruby' do
   describe package('git-core') do
     it { should be_installed }
   end
@@ -204,21 +289,45 @@ There will be lots of output, but at the end you'll see:
 
 The [rvm cookbook GitHub Page](https://github.com/martinisoft/chef-rvm) has good instructions on how to use the community cookbook to install RVM and Ruby.
 
-[==========broken===========]
+Next, you need to add the dependency on the rvm cookbook to your metadata file in your cookbook.
+
+```bash
+  $ vim metadata.rb
+```
+
+And add this line to the file
+
+```bash
+  depends 'rvm'
+```
+
+Save and close the file.
+
+Now let's add a test to ensure that Ruby 2.1.3 is installed through rvm.
+
+[TO DO: Explain why we need to use 'bash -l -c' with Test Kitchen and ServerSpec]
+
 ```bash
   require 'spec_helper'
 
   describe 'my_web_server_cookbook::ruby' do
-    describe command('rvm -v') do
-      its(:stdout) { should match /rvm 1.26.10 \(latest\) by Wayne E. Seguin <wayneeseguin@gmail.com>, Michal Papis <mpapis@gmail.com> \[https:\/\/rvm.io\/\]/ }
+    describe command('bash -l -c "rvm list"') do
+      its(:stdout) { should match /ruby-2.1.3/ }
     end
   end
 ```
-[==========/broken===========]
 
-Open up your recipe file and add in this content:
+First, let's run those tests and watch them fail:
 
 ```bash
+  $ kitchen verify
+```
+
+Now open up your recipe file and add in this content to make the tests pass.  Note that we need to include the default recipe from the rvm cookbook we just downloading from Supermarket.
+
+```bash
+  include_recipe 'rvm::system_install'
+
   rvm_ruby "ruby-2.1.3" do
     action :install
   end
@@ -230,24 +339,10 @@ Now apply the Chef changes:
   $ kitchen converge
 ```
 
-Now ssh into your kitchen instance
+And run the tests again:
 
 ```bash
-  $ kitchen login
-```
-
-And run this command:
-
-```bash
-  $ rvm list
-```
-
-You should see output similar to this:
-
-```bash
-  rvm rubies
-
-   * ruby-2.1.3 [ x86_64 ]
+  $ kitchen verify
 ```
 
 Ruby and RVM are working!
