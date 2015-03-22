@@ -400,25 +400,27 @@ It should look like this:
 
 See those first two lines where we define what driver we want test kitchen to use?  That defines what platform we want the VM test kitchen will spin up to run on.  By default, Test Kitchen will spin up a Vagrant VM and normally this is how I run Test Kitchen.
 
+
 However, all of us in this workshop are already developing on Vagrant VMs.  Spinning up a VM within a VM is messy at best, fortunately there are other platforms Test Kitchen can use to spin up a VM.  We're going to use Digital Ocean.
 
-You will need to set some environmental variables in your shell that Test Kitchen will use to authenticate to Digital Ocean.
+### DigitalOcean Setup
 
-[TO DO: How will they get Digital Access tokens?  We will issue one to each person in class?]
+We will need to set some environmental variables in your shell that Test Kitchen will use to authenticate to Digital Ocean.  We've done some special things to your Vagrant Box that should make all of this "just work".
 
-First, set the DIGITALOCEAN_ACCESS_TOKEN environmental variable:
-
-```bash
-  $ export DIGITALOCEAN_ACCESS_TOKEN="(token instructors gave you at the beginning of the class)"
-```
-
-Now set the DIGITALOCEAN_SSH_KEY_IDS variable:
-
-[TO DO: We'll need a way to gather all the student ssh keys, add to digital ocean account, then distribute to each member of class?  This is a highly manual process with lots of possibility for error.]
+Copy the file digitalocean-creds.txt from the USB stick to the directory that contains the Vagrantfile.  Then log out and log back in to your development vm (or re-source your bash profile).
 
 ```bash
-  $ export DIGITALOCEAN_SSH_KEY_IDS="(key provided by instructor)"
+  vagrant@workshop $ exit
+  you@laptop $ vagrant ssh
 ```
+
+To check for the variables, run:
+
+```bash
+  vagrant@workshop $ env | grep DIGITAL
+```
+
+You should see two lines.  If you don't, raise your hand.
 
 Now, open up your .kitchen.yml file and modify it so it looks like this:
 
@@ -462,6 +464,8 @@ You should receive output similar to this:
 ```
 
 This means Test Kitchen is now aware there is an environment it needs to run tests against our cookbook in, but it has not yet been created.
+
+### Running Test Kitchen Against Digital Ocean
 
 Let's go ahead and create this instance for Test Kitchen on Digital Ocean:
 
