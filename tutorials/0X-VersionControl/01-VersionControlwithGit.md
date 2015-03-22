@@ -135,9 +135,9 @@ Once you have a github account, you will need to add your *public* SSH key to it
 
 ### Fork to make your own copy of the code
 
-On the github website, make sure you are logged in.  Then find Nell's widgetworld repo, by searching for nellshamrell/widgetworld.  CLick the big Fork button!
+On the github website, make sure you are logged in.  Then find Nell's widgetworld repo, by searching for nellshamrell/widgetworld.  Click the big Fork button!
 
-Note: "fork" is not a 'git' command - it's a term used by Git hosting companies to represent a sever-side clone.
+Note: "fork" is not a 'git' command - it's a term used by Git hosting companies to represent a server-side clone.
 
 #### Sidebar: It's OK to Fork
 
@@ -147,11 +147,36 @@ In the past, when a project "forked," that meant there had been a rift in the pr
 
 You're now ready to fetch the code from the git hosting service Github, to your development machine.
 
+If you visit the project page at https://github.com/nellshamrell/widgetworld , you'll see a "SSH git clone URL" textbox in the right sidebar.  That's where you will find the repo address you can use to clone.
 
+```bash
+  workshop $ git clone git@github.com:nellshamrell/widgetworld.git
+```
+
+You should now have a widgetworld directory!
+
+```bash
+  workshop $ tree -L 2 widgetworld
+```
+
+And git should think that it is unmodified:
+
+```bash
+  workshop $ cd widgetworld
+  workshop $ git status
+  On branch master.
+  Everything up to date.
+```
 
 ## Making Changes
 
-TODO
+Let's suppose you need to add a note in a file.
+
+First, whenever you need to make a group of related changes, you should do it on a topic branch.  (Other workflows have other ideas about this, but this is the most common approach).
+
+A branch is an efficient copy of the code, that lets you make changes without affecting the mainline of development.  This is important, beause you may need to work on several branches at once, switching between them; 
+
+
 
 ## Publishing Changes
 
