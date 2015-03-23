@@ -69,21 +69,21 @@ So, we know we need to support several services.  Let's start with apache, as it
 #### Generating the cookbook
 
 ```bash
-  vagrant@workshop widget-chef $ chef generate cookbook cookbooks/apache
-  vagrant@workshop widget-chef $ git add cookbooks/apache/
-  vagrant@workshop widget-chef $ git commit -m "Initial generation of apache cookbook"
+  vagrant@workshop widget-chef $ chef generate cookbook cookbooks/my-apache
+  vagrant@workshop widget-chef $ git add cookbooks/my-apache/
+  vagrant@workshop widget-chef $ git commit -m "Initial generation of my-apache cookbook"
 ```
 
 Open up that metadata.rb file in your my_web_server_cookbook directory.  Use your preferred text editor (here I use vim).
 
 ```bash
-  vagrant@workshop widget-chef $ vim cookbooks/apache/metadata.rb
+  vagrant@workshop widget-chef $ vim cookbooks/my-apache/metadata.rb
 ```
 
 You should see content similar to this:
 
 ```bash
-  name             'apache'
+  name             'my-apache'
   maintainer       'The Authors'
   maintainer_email 'you@example.com'
   license          'all_rights'
@@ -97,7 +97,7 @@ Change the maintainer and maintainer values to your name and your email respecti
 Commit your changes:
 
 ```bash
-  vagrant@workshop widget-chef $ git commit -m "Update README with my name" cookbooks/apache/metadata.rb
+  vagrant@workshop widget-chef $ git commit -m "Update README with my name" cookbooks/my-apache/metadata.rb
 ```
 
 #### Why not use the community cookbook?
@@ -128,10 +128,10 @@ ChefDK will include all the Test Kitchen templates that we need.
 
 ##### Setting up Test Kitchen within your cookbook
 
-Change directories to your apache cookbook
+Change directories to your my-apache cookbook
 
 ```bash
-  vagrant@workshop widget-chef $ cd cookbooks/apache
+  vagrant@workshop widget-chef $ cd cookbooks/my-apache
 ```
 
 List all files and directories, including hidden files
@@ -139,7 +139,7 @@ List all files and directories, including hidden files
 [TO DO: Explain -a flag more?)
 
 ```bash
-  vagrant@workshop apache $ ls -la
+  vagrant@workshop my-apache $ ls -la
 ```
 
 You should see output similar to this.
@@ -164,7 +164,7 @@ Notice that .kitchen.yml file?  This is the configuration file for our test envi
 Go ahead and open this file with your favorite text editor.
 
 ```bash
-  vagrant@workshop apache $ vim .kitchen.yml
+  vagrant@workshop my-apache $ vim .kitchen.yml
 ```
 
 It should look like this:
@@ -183,7 +183,7 @@ It should look like this:
   suites:
     - name: default
     run_list:
-      - recipe[apache::default]
+      - recipe[my-apache::default]
     attributes:
 ```
 
@@ -233,7 +233,7 @@ platforms:
 suites:
   - name: default
     run_list:
-      - recipe[apache::default]
+      - recipe[my-apache::default]
     attributes:
 ```
 
@@ -242,14 +242,14 @@ Save and close the file.
 Commit your changes:
 
 ```bash
-  vagrant@workshop apache $ git commit -m "Switch Test Kitchen to use Digital Ocean" .kitchen.yml
+  vagrant@workshop my-apache $ git commit -m "Switch Test Kitchen to use Digital Ocean" .kitchen.yml
 ```
 
 
 Now run the command:
 
 ```bash
-  vagrant@workshop apache $ kitchen list
+  vagrant@workshop my-apache $ kitchen list
 ```
 
 You should receive output similar to this:
@@ -266,7 +266,7 @@ This means Test Kitchen is now aware there is an environment it needs to run tes
 Let's go ahead and create this instance for Test Kitchen on Digital Ocean:
 
 ```bash
-  vagrant@workshop apache $ kitchen create default-ubuntu-1404
+  vagrant@workshop my-apache $ kitchen create default-ubuntu-1404
 ```
 
 This will take a little bit while Digital Ocean spins up the instance and gets it ssh ready.  you should receive this confirmation message within 6-7 minutes:
@@ -280,7 +280,7 @@ This will take a little bit while Digital Ocean spins up the instance and gets i
 Alright, let's run kitchen list again:
 
 ```bash
-  vagrant@workshop apache $ kitchen list
+  vagrant@workshop my-apache $ kitchen list
 ```
 
 You should see output similar to this:
@@ -293,12 +293,12 @@ You should see output similar to this:
 The final thing we need to do is install Chef Client on this instance in order to run our tests.  To do that, run:
 
 ```bash
-  vagrant@workshop apache $ kitchen setup
+  vagrant@workshop my-apache $ kitchen setup
 ```
 
 You'll see lots of output.  When it completes, run kitchen list one last time:
 ```bash
-  vagrant@workshop apache $ kitchen list
+  vagrant@workshop my-apache $ kitchen list
 ```
 
 Now you'll see this output:
@@ -315,7 +315,7 @@ First, let's make sure that Test Kitchen can run our code.
 Open up recipes/default.rb
 
 ```bash
-  vagrant@workshop apache $ vim recipes/default.rb
+  vagrant@workshop my-apache $ vim recipes/default.rb
 ```
 
 And add this content.
@@ -329,7 +329,7 @@ Save and close the file.
 Now we'll use Test Kitchen to run this code.  To do this, we use the "kitchen converge" command:
 
 ```bash
-  vagrant@workshop apache $ kitchen converge
+  vagrant@workshop my-apache $ kitchen converge
 ```
 
 At some point in the output, you should see this:
@@ -344,7 +344,7 @@ Huzzah!  This means Test Kitchen can run our cookbook!
 Commit your work:
 
 ```bash
-  vagrant@workshop apache $ vagrant@workshop apache $ git commit -m "Log message to veify test kitchen execution" recipes/default.rb
+  vagrant@workshop my-apache $ vagrant@workshop my-apache $ git commit -m "Log message to veify test kitchen execution" recipes/default.rb
 ```
 
 And now we're ready to write and run some tests!
@@ -370,13 +370,13 @@ To do this, we will use something called [ServerSpec].  ServerSpec allows us to 
 Our tests will live in the /test/integration directory of our cookbook.  Go ahead and take a look at the contents of that directory with:
 
 ```bash
-  vagrant@workshop apache $ ls test/integration
+  vagrant@workshop my-apache $ ls test/integration
 ```
 
 You'll see a directory called "default."  This is where the specs for our default recipe will live.  Go ahead and take a look inside that directory.
 
 ```bash
-  vagrant@workshop apache $ ls test/integration/default
+  vagrant@workshop my-apache $ ls test/integration/default
 ```
 
 You'll now see a directory called "serverspec."  There are multiple testing languages that can be used with test kitchen and here is where you would provide directories for each language.  We're using serverspec and the serverspec directory is already there, so we're good to go.
@@ -384,13 +384,13 @@ You'll now see a directory called "serverspec."  There are multiple testing lang
 Take a look in the serverspec directory:
 
 ```bash
-  vagrant@workshop widget-chef apache$ ls test/integration/default/serverspec
+  vagrant@workshop widget-chef my-apache$ ls test/integration/default/serverspec
 ```
 
 You'll see two files: default_spec.rb and spec_helper.rb.  Open up default_spec.rb:
 
 ```bash
-  vagrant@workshop widget-chef apache$ vim test/integration/default/serverspec/default_spec.rb
+  vagrant@workshop widget-chef my-apache$ vim test/integration/default/serverspec/default_spec.rb
 ```
 
 And you'll see a placeholder spec that looks like this:
@@ -398,7 +398,7 @@ And you'll see a placeholder spec that looks like this:
 ```bash
 require 'spec_helper'
 
-describe 'apache::default' do
+describe 'my-apache::default' do
 
   # Serverspec examples can be found at
   # http://serverspec.org/resource_types.html
@@ -417,7 +417,7 @@ So let's delete that placeholder spec and replace it with a real spec.
 ```bash
 require 'spec_helper'
 
-describe 'apache::default' do
+describe 'my-apache::default' do
 
   # Serverspec examples can be found at
   # http://serverspec.org/resource_types.html
@@ -436,7 +436,7 @@ A key factor of Test Driven Development is to write the test first, then run it 
 Let's run 'kitchen list' to make sure that our instance is converged and ready for testing.
 
 ```bash
-  vagrant@workshop widget-chef apache$ kitchen list
+  vagrant@workshop widget-chef my-apache$ kitchen list
 ```
 
 You should see:
@@ -449,19 +449,19 @@ You should see:
 Now let's run our test.
 
 ```bash
-  vagrant@workshop apache$ kitchen verify
+  vagrant@workshop my-apache$ kitchen verify
 ```
 
 As expected, this fails:
 
 ```bash
-       apache::default
+       my-apache::default
          Package "apache2"
            should be installed (FAILED - 1)
 
        Failures:
 
-         1) apache::default Package "apache2" should be installed
+         1) my-apache::default Package "apache2" should be installed
             Failure/Error: it { should be_installed }
               expected Package "apache2" to be installed
               /bin/sh -c dpkg-query\ -f\ \'\$\{Status\}\'\ -W\ apache2\ \|\ grep\ -E\ \'\^\(install\|hold\)\ ok\ installed\$\'
@@ -476,7 +476,7 @@ As expected, this fails:
 Commit your work - having a RED test is a good thing, at this point.
 
 ```bash
-  vagrant@workshop apache $ git commit -m "TDD RED for apache2 package installation" test/integration/default/serverspec/default_spec.rb
+  vagrant@workshop my-apache $ git commit -m "TDD RED for apache2 package installation" test/integration/default/serverspec/default_spec.rb
 ```
 
 
@@ -508,19 +508,19 @@ Then add the important part:
 After every Chef change, you'll need to run kitchen converge to run Chef:
 
 ```bash
-  vagrant@workshop apache$ kitchen converge
+  vagrant@workshop my-apache$ kitchen converge
 ```
 
 Then run the tests!  They should pass.
 
 ```bash
-  vagrant@workshop apache$ kitchen verify
+  vagrant@workshop my-apache$ kitchen verify
 ```
 
 Commit your work, this is a key checkpoint:
 
 ```bash
-  vagrant@workshop apache $ git commit -m "TDD GREEN for apache2 package installation" recipes/default.rb
+  vagrant@workshop my-apache $ git commit -m "TDD GREEN for apache2 package installation" recipes/default.rb
 ```
 
 [ TODO - add section on ensuring service start ] 
@@ -626,8 +626,57 @@ Commit your changes:
   vagrant@workshop widgetworld-app $ git commit -m "TDD RED - Web app deployment checks" test/integration/default/serverspec/default_spec.rb
 ```
 
-
 #### TDD Green: Making it run
+
+##### Deploying the Code
+
+There are a lot of ways to deploy code using Chef.  
+
+[ TODO - Code deploy using terrible ideas ]
+
+##### Running Apache
+
+Obviously, we just developed an my-apache cookbook!  We should somehow refer to it, and use it.
+
+Calling one cookbook's recipes from another is called a cookbook dependency.  We add one by doing three things.  First, we declare that we are going to rely on the my-apache cookbook by adding a 'depends' statement to the metadata file:
+
+```bash
+  vagrant@workshop widgetworld-app $ vim metadata.rb
+```
+
+Add:
+
+```bash
+   depends 'my-apache'
+```
+
+Also modify the Author, if you haven't already.
+
+Next, we need to tell Chef to execute the my-apache cookbook's default recipe at some point.  There are several ways to do this, but this is one of the simplest:
+
+```bash
+  vagrant@workshop widgetworld-app $ vim recipes/default.rb
+```
+
+Add:
+
+```bash
+   include_recipe 'my-apache::default'
+```
+
+Finally, we need to tell the dependency resolver, known as Berkshelf,  how to find the my-apache cookbook.  
+
+```bash
+  vagrant@workshop widgetworld-app $ vim Berksfile
+```
+
+Add: 
+
+```bash
+   cookbook 'my-apache', path: '../my-apache'
+```
+
+
 
 ## Enrichment
 
