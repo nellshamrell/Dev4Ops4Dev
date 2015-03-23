@@ -205,7 +205,7 @@ You should receive output similar to this:
 
 Excellent, the apache2 package is installed on our development box!
 
-Now, let's add in a custom home page.
+Now onto Test Driven Development.
 
 ## Test Drive Installing Apache with Chef
 
@@ -386,7 +386,7 @@ You should receive output similar to this:
 
 ```bash
   Instance             Driver        Provisioner  Last Action
-  default-ubuntu-1404  Digitalocean  ChefZero     <Not Created>
+  default-ubuntu-14-04-x64  Digitalocean  ChefZero     <Not Created>
 ```
 
 This means Test Kitchen is now aware there is an environment it needs to run tests against our cookbook in, but it has not yet been created.
@@ -396,7 +396,7 @@ This means Test Kitchen is now aware there is an environment it needs to run tes
 Let's go ahead and create this instance for Test Kitchen on Digital Ocean:
 
 ```bash
-  $ kitchen create default-ubuntu-1404
+  $ kitchen create default-ubuntu-14-04-x64
 ```
 
 This will take a little bit while Digital Ocean spins up the instance and gets it ssh ready.  you should receive this confirmation message within 6-7 minutes:
@@ -416,8 +416,8 @@ Alright, let's run kitchen list again:
 You should see output similar to this:
 
 ```bash
-  Instance             Driver        Provisioner  Last Action
-  default-ubuntu-1404  Digitalocean  ChefZero     Created
+  Instance                 Driver        Provisioner  Last Action
+  default-ubuntu-1404-x64  Digitalocean  ChefZero     Created
 ```
 
 The final thing we need to do is install Chef Client on this instance in order to run our tests.  To do that, run:
@@ -563,6 +563,41 @@ Now let's run our test.
   $ kitchen verify
 ```
 
+Looks like we got a failure:
+
+```bash
+  1) my_web_server_cookbook::default Package "apache2" should be installed
+    Failure/Error: it { should be_installed }
+      expected Package "apache2" to be installed
+      /bin/sh -c dpkg-query\ -f\ \'\$\{Status\}\'\ -W\ apache2\ \|\ grep\ -E\ \'\^\(install\|hold\)\ ok\ installed\$\'
+      dpkg-query: no packages found matching apache2
+
+    # /tmp/busser/suites/serverspec/default_spec.rb:9:in `block (3 levels) in <top (required)>'
+
+  Finished in 0.13136 seconds (files took 0.43602 seconds to load)
+  1 example, 1 failure
+```
+
+Excellent!  Our test looks for the apache2 package and, when it doesn't find it, fails.  Now let's make it pass.
+
+Open up recipes/default.rb
+
+```bash
+  $ vim recipes/default.rb
+```
+
+And add this:
+
+```bash
+  package 'apache2' # Installs the apache2 package
+```
+
+Now, run:
+
+```bash
+  $ kitchen converge
+```
+
 whoops - looks like we got an error.  Rather than running tests, then exiting with a test failure, it has errored out when converging.  Converge installs our Chef recipe on our test instance, only after that does it run the tests.
 
 ```bash
@@ -605,7 +640,29 @@ Let's scroll up a bit until we find:
 
 We need to run apt-get update on our test instance before it can find and install the apache2 package.
 
-Let's add that to our default Chef recipe.  Open up the recipe with:
+Let's add that to our default Chef recipe.  First, let's write a test.  If apt-get update has been run, then we should not receive a message similar to "E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?"
+
+Open up your test file
+
+```bash
+  $ vim test/integration/default/serverspec/default_spec.rb
+```
+
+And add in this content:
+
+```bash
+  describe command('ls -l /var/lib/apt/periodic/update-success-stamp') do
+    its(:stdout) { should match /#{Regexp.quote(Date.today.strftime("%b %d"))}/}
+  end
+```
+
+Save and close the file, then run your tests:
+
+```bash
+  $ kitchen verify
+```
+
+And, as expected, we get a failure.  Now let's make it pass.
 
 ```bash
   $ vim recipes/default.rb
@@ -618,60 +675,6 @@ And add this content:
     command "apt-get update"
     action :run
   end
-```
-
-Looks like we got a failure:
-
-```bash
-  1) my_web_server_cookbook::default Package "apache2" should be installed
-    Failure/Error: it { should be_installed }
-      expected Package "apache2" to be installed
-      /bin/sh -c dpkg-query\ -f\ \'\$\{Status\}\'\ -W\ apache2\ \|\ grep\ -E\ \'\^\(install\|hold\)\ ok\ installed\$\'
-      dpkg-query: no packages found matching apache2
-
-    # /tmp/busser/suites/serverspec/default_spec.rb:9:in `block (3 levels) in <top (required)>'
-
-  Finished in 0.13136 seconds (files took 0.43602 seconds to load)
-  1 example, 1 failure
-```
-
-Excellent!  Our test looks for the apache2 package and, when it doesn't find it, fails.  Now let's make it pass.
-
-Open up recipes/default.rb
-
-```bash
-  $ vim recipes/default.rb
-```
-
-And add this:
-
-```bash
-  package 'apache2' # Installs the apache2 package
-```
-
-Now, run:
-
-```bash
-  $ kitchen converge
-```
-
-To apply the Chef changes to the Test Kitchen instance, then run the test again with:
-
-```bash
-  $ kitchen verify
-```
-
-And you should see:
-
-```bash
-  my_web_server_cookbook::default
-    Package "apache2"
-      should be installed
-
-  Finished in 0.12728 seconds (files took 0.40525 seconds to load)
-  1 example, 0 failures
-
-  Finished verifying <default-ubuntu-14-04-x64> (0m4.17s).
 ```
 
 Huzzah! It passes!
@@ -1006,13 +1009,5 @@ The run your tests with:
 ```
 
 And our test passes!
-
-Let's do one final run - destroying this instance, creating a new instance, converging Chef, and running the tests.  Test Kitchen has a one stop command for all of these things.  Run:
-
-```bash
-  $ kitchen test
-```
-
-It'll take a bit to run, but by the end you should see all specs passing.
 
 Now we have a test driven Chef recipe to install Apache!
