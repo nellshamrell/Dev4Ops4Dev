@@ -52,22 +52,33 @@ Head on down to the "Using Vagrant" section of these instructions.
 
 ### Windows 8.1
 
+TODO
+
 ### Linux
+
+TODO
 
 ## Starting Vagrant
 
-Let's create a Vagrant box that runs Ubuntu 14.04 LTS (Trusty Tahr)
+Let's create a Vagrant box that runs Ubuntu 14.04 LTS (Trusty Tahr).  We've created an image that is based on Trusty, with a few tools added.
+
+TODO - instructions on how to find basebox image
 
 In your project directory (using terminal if you're on a Mac or Linux box, using the command prompt if you're on a Windows box) type in this command:
 
 ```bash
-  $ vagrant init ubuntu/trusty64
+  $ vagrant box add dev4ops4dev $USB_STICK_PATH/dev4ops4dev.box
 ```
-This will create a Vagrant file in the project directory, which will allow us to configure our Vagrant box.  Go ahead and open it up and take a look through if you like.
 
-[TO DO: See if there's a way to do this locally]
+This will locate the workshop image, and load it into Vagrant's library of boxesunder the name 'dev4ops4dev'.  Now Vagrant will be able to create a running VM based on that box!
 
-Then run this command to start up your new Vagrant box
+```bash
+  $ vagrant init dev4ops4dev
+```
+
+This will create a Vagrantfile in the project directory, which will allow us to configure our Vagrant box.  Go ahead and open it up and take a look through if you like.
+
+Then run this command to start up your new Vagrant box:
 
 ```bash
   $ vagrant up
@@ -82,10 +93,10 @@ Now it's time to SSH into your new Vagrant box so we can use it as a development
 In your project folder (make sure it's the same directory with the Vagrant file you just created), run this command:
 
 ```bash
-  $ vagrant ssh
+  your-laptop $ vagrant ssh
 ```
 
-This will log you into your Vagrant box as root.
+This will log you into your Vagrant box as the user 'vagrant', which has passwordless sudo.
 
 ### Windows 7 or 8.1
 
@@ -95,44 +106,104 @@ Zack Wallace has a fantastic blog post called ["Getting Started with Vagrant on 
 
 ## Updating your system
 
-[TO DO: Capture in a workstation setup Chef recipe?]
+## Look around
+
+Look around!  Your development machine should have some tools - some familiar, some perhaps not:
+
+```bash
+  vagrant@d4o4d-workshop $ for cmd in "nano vim emacs git vagrant tugboat chef rubocop foodcritic rspec"; do $cmd --version; done
+```
+
+Also notice that the prompt has changed, indicating that you on another machine - VM within your laptop!:
+
+```bash
+  vagrant@d4o4d-workshop $ uname -a
+```
+
+
+
+## Vagrant Basics
+
+At this point, you only need to know a bit about Vagrant.  We'll add more as we go along.
+
+### The Vagrant Directory Mount
+
+You can pass files directly into and out of your vagrant instance using the /vagrant area, which is mounted on the directory on the host containing the Vagrantfile.
+
+NOTE: this works seamlessly for VirtualBox-based VMs.  Later, we may work on other systems, in which this feature has different behavior.
+
+### Handy Vagrant Commands
+
+#### vagrant init BOXNAME
+
+As you saw above, you use init to start a new project.  Given the name of a Vagrant box, it will create a Vagrantfile with default settings, which will tell it to create a VM from the box.
+
+#### vagrant up
+
+When run in a directory with a Vagrantfile, this will create a VM if one does not exist, or resume one if it has been suspended.
+
+#### vagrant ssh and vagrant ssh-config
+
+'vagrant ssh-config' tells you the settings it would use to connect to the VM.  'vagrant ssh' connects using the command line SSH, if available.
+
+#### vagrant halt
+
+Tells the guest operating system to perform a graceful shutdown.  Add --force to pull the plug immediately.
+
+#### vagrant destroy
+
+Force-halts the guest, then deletes the instance or disk image.  No going back - once it's gone, it's gone.
+
+## Next Steps
+
+And that sets up your development environment for this workshop!  Now onto using it!
+
+## Enrichment (Optional)
+
+### How did we make the workshop box?
+
+We started with a base ubuntu image, which we got via Vagrant Atlas:
+
+```bash
+  $ vagrant init ubuntu/trusty64
+  $ vagrant up
+  $ vagrant ssh
+```
+
+### APT cache update
 
 The first thing we want to do is update the operating system on our Vagrant box.  To do this in Ubuntu 14.04, run:
 
 ```bash
-  $ sudo apt-get update
+  vagrant@d4o4d-workshop $ sudo apt-get update
 ```
 
-## Setting up Chef
-
-[TO DO: Capture in a workstation setup Chef recipe?]
+### Setting up Chef
 
 We'll be using Chef throughout this workshop to set up a webserver, so let's get the ChefDK (Chef Developer Kit) installed on your Vagrant box.
 
 Run this command:
 
 ```bash
-  $ curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -P chefdk
+  vagrant@d4o4d-workshop $ curl -L https://www.chef.io/chef/install.sh | sudo bash -s -- -P chefdk
 ```
 
 This will take a few minutes.  Once it is complete (you'll see a message that says "Thank you for installing Chef Development Kit!"), verify that ChefDK installed like this:
 
 ```bash
-  $ chef --version
+  vagrant@d4o4d-workshop $ chef --version
 ```
 
 You should see something along the lines of "Chef Development Kit Version: 0.4.0"
 
-## Configuring Ruby
-
-[TO DO: Capture in a workstation setup Chef recipe?]
+### Configuring Ruby
 
 We'll be using Ruby to create Chef code.  Although ChefDK does come with a current version of Ruby, there is also an earlier version of Ruby already installed on our Ubuntu 14.04 system.
 
 We need to configure are our development environment to use the ChefDK version of Ruby, rather than the system version of Ruby.  To do this, first run:
 
 ```bash
-  $ which ruby
+  vagrant@d4o4d-workshop $ which ruby
 ```
 
 If it returns something like:
@@ -144,7 +215,7 @@ If it returns something like:
 That means your development environment is using the system ruby, rather than the ChefDK version of Ruby.  To fix this, run:
 
 ```bash
-  $ echo 'eval "$(chef shell-init bash)"' >> ~/.bash_profile
+  vagrant@d4o4d-workshop $ echo 'eval "$(chef shell-init bash)"' >> ~/.bash_profile
 ```
 
 This adds a line to your .bash_profile file, telling it to use the ChefDK version of Ruby.
@@ -152,13 +223,13 @@ This adds a line to your .bash_profile file, telling it to use the ChefDK versio
 Now we need to apply this change.  To do this, run:
 
 ```bash
-  $ source ~/.bash_profile
+  vagrant$ source ~/.bash_profile
 ```
 
 Then re-run:
 
 ```bash
-  $ which ruby
+  vagrant@d4o4d-workshop $ which ruby
 ```
 
 It should now return:
@@ -167,55 +238,38 @@ It should now return:
   /opt/chefdk/embedded/bin/ruby
 ```
 
+### Editors
+
+We installed several editors to suit various tastes.  As a safe default, we set EDITOR to nano in vagrant's .bash_profile .
+
+```bash
+  sudo apt-get install emacs24-nox emacs24-el vim nano joe 
+  sudo apt-get install tree
+
+### Chef, Vagrant, and DigitalOcean drivers
+
+We'll be doing some development using Chef and a cloud provider, so we need to install Vagrant within the VM.
+
+```bash
+  echo 'eval "$(chef shell-init bash)"' >> ~/.bash_profile
+  sudo apt-get install git
+  wget https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.deb && sudo dpkg -i vagrant_1.7.2_x86_64.deb && rm vagrant_1.7.2_x86_64.deb
+  vagrant plugin install vagrant-omnibus
+  vagrant plugin install vagrant-digitalocean
+  gem install tugboat
+```
+
+### Miscellanea
+
 There are some additional packages you will need to install to work with Ruby on Ubuntu.  You can install these with this command:
 
-[TO DO: Capture in workstation set up Chef recipe?]
+```bash
+  vagrant@d4o4d-workshop $ sudo apt-get install git git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties
+```
+### Halt and Repack the Box
 
 ```bash
-  $ sudo apt-get install git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev libsqlite3-dev sqlite3 libxml2-dev libxslt1-dev libcurl4-openssl-dev python-software-properties
+  vagrant@d4o4d-workshop $ exit
+  your-laptop $ vagrant halt
+  your-laptop $ vagrant package --output dev4ops4dev-workshop-0.1.0.box
 ```
-
-
-## Setting up Git
-
-[TO DO: Capture in a workstation setup Chef recipe?]
-
-Next, we will be using Git for source control.
-
-[TO DO: Explain source control here?]
-
-To install Git, run this command:
-
-```bash
-  $ sudo apt-get install git
-```
-
-### Connecting to Github
-
-[TO DO: Explain Github]
-
-If you have not already done so, create a [Github account](https://github.com/).  This will give us a place outside of our developer workstation to keep our Chef recipes, etc.
-
-Now let's connect your developer workstation to your Github account.  To do this, first set up your global git name (this is what identifies you in your commits) through this command:
-
-```bash
-  $ git config --global user.name "Your Name"
-```
-
-Now configure your global git email address (this will be included in your commits) through this command:
-
-```bash
-  $ git config --global user.email "your_email@your_email_domain.com"
-```
-
-Check that the values are stored correctly by running:
-
-```bash
-  $ git config --list
-```
-
-Next, you'll need to create an SSH key on your developer workstation and add it to your Github accout to allow you to pull and push repositories from/to Github.  Github provides [excellent instructions](https://help.github.com/articles/generating-ssh-keys/) on how to do this.  If you need help, please ask!
-
-## Conclusion
-
-And that sets up your development environment for this workshop!  Now onto using it!
