@@ -1,3 +1,5 @@
+
+
 Apache is the main piece of our web server, in fact it's called a "Web Server."  It's what enables communication over networks, which allows our server to connect and be connected to the outside world.
 
 # Install Apache by hand
@@ -11,31 +13,19 @@ Create a new directory in your workshop directory, maybe call it "hand_crafted_a
 Initiate a Vagrant file with:
 
 ```bash
-  vagrant init ubuntu/trusty64
+  you@laptop $vagrant init workshop
 ```
 
-[TO DO: Explore if there is a way to do this locally)
-
-Then spin up the Vagrant VM.
+Then spin up the Vagrant VM.  This time we'll set a flag to give it a different name internally, so we can keep our prompts clear.
 
 ```bash
-  vagrant up
+  you@laptop $ WORKSHOP_HOSTNAME=apache-test vagrant up
 ```
 
-Then SSH into the VM
-
-[NOTE - If you are on Windows, use Putty to SSH into your VM]
+Then SSH into the VM, using either terminal ssh (Linux, MacOS) or PuTTY SSH (windows)
 
 ```bash
-  vagrant ssh
-```
-
-## Update Ubuntu
-
-Run this command in the new VM to update Ubuntu's packages:
-
-```bash
-  $ sudo apt-get update
+  you@laptop $ vagrant ssh
 ```
 
 ## Installing the Apache package
@@ -43,23 +33,23 @@ Run this command in the new VM to update Ubuntu's packages:
 Run:
 
 ```bash
-(VM) $ sudo apt-get install apache2
+  vagrant apache-test $ sudo apt-get install apache2
 ```
 
 Once this is complete, let's verify that Apache is working on this VM.  Run this command:
 
 ```bash
-  $ wget -qO- 127.0.0.1
+  vagrant apache-test $ wget -qO- 127.0.0.1
 ```
 
 If Apache is installed correctly, the command line will output an html document which includes the words "It works!"
 
 Let's make that home page a little more interesting by adding a custom one.
 
-Open up the file at /var/www/html/ using your preferred text editor (here I use vim) (note that you need to use sudo for this one).
+Open up the file at /var/www/html/ using your preferred text editor (vim, emacs, joe, and nano are available) (note that you need to use sudo for this one).
 
 ```bash
-  $ sudo vim /var/www/html/index.html
+  vagrant apache-test $ sudo vim /var/www/html/index.html
 ```
 
 Delete all the content in the file, then add in just this line.
@@ -71,19 +61,19 @@ Delete all the content in the file, then add in just this line.
 Now run the wget command again:
 
 ```bash
-  $ wget -qO- 127.0.0.1
+  vagrant apache-test $ wget -qO- 127.0.0.1
 ```
 
 And you should see this output:
 
 ```bash
-  $ <h1>I AM A CUSTOM PAGE</h1>
+  vagrant apache-test $ <h1>I AM A CUSTOM PAGE</h1>
 ```
 
 Now we are done with this VM.  Go ahead and exit out of it, then run:
 
 ```bash
-  $ vagrant destroy
+  vagrant apache-test $ vagrant destroy
 ```
 Return back to your development VM.
 
@@ -98,13 +88,13 @@ First, we need to create a Chef repo of our own.  This will contain all our cook
 Make sure you're on your DEVELOPMENT VM and run
 
 ```bash
-  $ chef generate repo my_web_server_chef_repo
+  vagrant@workshop $ chef generate repo my_web_server_chef_repo
 ```
 
 Then CD into that directory:
 
 ```bash
-  $ cd my_web_server_chef_repo
+  vagrant@workshop $ cd my_web_server_chef_repo
 ```
 
 ## Creating a Cookbook
@@ -112,21 +102,21 @@ Then CD into that directory:
 Now, let's create an actual cookbook to manage our Apache installs.
 
 ```bash
-  $ chef generate cookbook cookbooks/my_web_server_cookbook
+  vagrant@workshop $ chef generate cookbook cookbooks/my_web_server_cookbook
 ```
 
 Chef automatically generates several files and directories within cookbooks/my_web_server_cookbook.  Let's take a quick look:
 
 
 ```bash
-  $ ls cookbooks/my_web_server_cookbook
+  vagrant@workshop $ ls cookbooks/my_web_server_cookbook
   Berksfile  chefignore  metadata.rb  README.md  recipes  spec  test
 ```
 
 Let's open up that metadata.rb file.  Use your preferred text editor (here I use vim).
 
 ```bash
-  $ vim cookbooks/my_web_server_cookbook/metadata.rb
+  vagrant@workshop $ vim cookbooks/my_web_server_cookbook/metadata.rb
 ```
 
 You should see content similar to this:
@@ -148,7 +138,7 @@ Change the maintainer and maintainer values to your name and your email respecti
 Cookbooks always contain recipes and our's is no different.  When we create a cookbook with the chef generate cookbook command, it automatically creates a recipes directory.  Even better, there's already a recipe included called "default.rb".  Open up the default.rb recipe with your favorite text editor (here I use Vim).
 
 ```bash
-  $ vim cookbooks/my_web_server_cookbook/recipes/default.rb
+  vagrant@workshop $ vim cookbooks/my_web_server_cookbook/recipes/default.rb
 ```
 
 And insert the following
@@ -410,37 +400,27 @@ It should look like this:
 
 See those first two lines where we define what driver we want test kitchen to use?  That defines what platform we want the VM test kitchen will spin up to run on.  By default, Test Kitchen will spin up a Vagrant VM and normally this is how I run Test Kitchen.
 
+
 However, all of us in this workshop are already developing on Vagrant VMs.  Spinning up a VM within a VM is messy at best, fortunately there are other platforms Test Kitchen can use to spin up a VM.  We're going to use Digital Ocean.
 
-For Test Kitchen to use Digital Ocean, we need to install an additional gem on in our Development Environment - [kitchen-digitalocean](https://github.com/test-kitchen/kitchen-digitalocean)
+### DigitalOcean Setup
 
-[TO DO: Should we include this gem as part of a workstation setup Chef recipe?]
+We will need to set some environmental variables in your shell that Test Kitchen will use to authenticate to Digital Ocean.  We've done some special things to your Vagrant Box that should make all of this "just work".
 
-To install kitchen-digitalocean, run this command:
-
-```bash
-  $ sudo chef gem install kitchen-digitalocean
-```
-
-Putting "chef" before "gem install" ensures that we will use the ChefDK version of Ruby.
-
-Next, you will need to set some environmental variables in your shell that Test Kitchen will use to authenticate to Digital Ocean.
-
-[TO DO: How will they get Digital Access tokens?  We will issue one to each person in class?]
-
-First, set the DIGITALOCEAN_ACCESS_TOKEN environmental variable:
+Copy the file digitalocean-creds.txt from the USB stick to the directory that contains the Vagrantfile.  Then log out and log back in to your development vm (or re-source your bash profile).
 
 ```bash
-  $ export DIGITALOCEAN_ACCESS_TOKEN="(token instructors gave you at the beginning of the class)"
+  vagrant@workshop $ exit
+  you@laptop $ vagrant ssh
 ```
 
-Now set the DIGITALOCEAN_SSH_KEY_IDS variable:
-
-[TO DO: We'll need a way to gather all the student ssh keys, add to digital ocean account, then distribute to each member of class?  This is a highly manual process with lots of possibility for error.]
+To check for the variables, run:
 
 ```bash
-  $ export DIGITALOCEAN_SSH_KEY_IDS="(key provided by instructor)"
+  vagrant@workshop $ env | grep DIGITAL
 ```
+
+You should see two lines.  If you don't, raise your hand.
 
 Now, open up your .kitchen.yml file and modify it so it looks like this:
 
@@ -484,6 +464,8 @@ You should receive output similar to this:
 ```
 
 This means Test Kitchen is now aware there is an environment it needs to run tests against our cookbook in, but it has not yet been created.
+
+### Running Test Kitchen Against Digital Ocean
 
 Let's go ahead and create this instance for Test Kitchen on Digital Ocean:
 
@@ -1055,7 +1037,7 @@ When you ran that generate command above, it placed a file in the templates dire
   $ ls templates/default
 ```
 
-You should see a file called "index.html.erb"  This is the template for your custom hope page.  Go ahead and open it up:
+You should see a file called "index.html.erb"  This is the template for your custom home page.  Go ahead and open it up:
 
 ```bash
   $ vim templates/default/index.html.erb
