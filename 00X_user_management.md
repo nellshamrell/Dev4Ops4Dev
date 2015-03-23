@@ -1,4 +1,0 @@
-# Lesson
-[BEN WILL PROVIDE CONTENT FOR THIS PART]
-
-# Exercises
