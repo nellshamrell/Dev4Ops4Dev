@@ -12,6 +12,24 @@ Let's generate a new recipe like so:
   $ chef generate recipe passenger
 ```
 
+Now we need to create the directory where our server specs will live:
+
+```bash
+  $ mkdir -p test/integration/passenger/serverspec
+```
+
+And create the test file
+
+```bash
+  $ touch test/integration/passenger/serverspec/passenger_spec.rb
+```
+
+And we need to be able to access a spec_helper similar to the one living in test/integration/default/serverspec.  In this case, let's copy that one into our new integration test directory.
+
+```bash
+  $ cp test/integration/default/serverspec/spec_helper.rb test/integration/passenger/serverspec
+```
+
 ## Installing the Passenger gem
 
 Were we installing Passenger by hand, we would run this command to install it through Ruby Gems (a very commonly used repo of Ruby libraries)
@@ -103,21 +121,45 @@ Now let's add the code to make this test pass.
 
 Open up the recipe file:
 
-[===================== broken =======================]
-[Not installing gem properly, needs to be installed manually]
 ```bash
   $ vim recipes/passenger.rb
 ```
 
 And add in this content:
 
+[TO DO: explain why not using gem package]
+
 ```bash
-  gem_package 'passenger' do
-    action :install
+  execute 'sudo gem install passenger' do
+    command "sudo gem install passenger"
+    action :run
   end
 ```
 
 Then apply the Chef changes to your test instance:
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+Whoops, looks like we got an error.
+
+```bash
+  Mixlib::ShellOut::ShellCommandFailed
+  ------------------------------------
+  Expected process to exit with [0], but received '1'
+  ---- Begin output of sudo gem install passenger ----
+  STDOUT:
+  STDERR: sudo: gem: command not found
+```
+
+The gem command needs the Ruby packages installed in order to work.  Let's include our Ruby recipe.  Add this to the top of your recipe file:
+
+```bash
+  include_recipe 'my_web_server_cookbook::ruby'
+```
+
+Then apply this change
 
 ```bash
   $ kitchen converge passenger-ubuntu-14-04-x64
@@ -130,14 +172,13 @@ And run the tests again:
 ```
 
 And they pass!
-[===================== /broken =======================]
 
 ## Installing Passenger dependencies
 
 Passenger requires several packages to work with Apache.
 
 ```bash
-  apache2-threaded-dev, ruby-dev, libapr1-dev, libaprutil1-dev
+  apache2-dev, ruby-dev, libapr1-dev, libaprutil1-dev
 ```
 
 Let's add in tests for each of these packages.
@@ -151,7 +192,7 @@ Open up the test file:
 And add in the following content:
 
 ```bash
-    describe package('apache2-threaded-dev') do
+    describe package('apache2-dev') do
       it { should be_installed }
     end
 
@@ -185,7 +226,7 @@ Open up your recipe file.
 And add in this content:
 
 ```bash
-  package 'apache2-threaded-dev'
+  package 'apache2-dev'
 
   package 'ruby-dev'
 
@@ -208,133 +249,223 @@ And run the tests:
 
 And they should pass.
 
-[================broken==============]
-  Currently the apache2-threaded-dev test is failing even though the package is installed
-[================/broken==============]
-
-
 ## Configuring Passenger to work with Apache
 
 Now let's install the module which will allow passenger to work with Apache
 
 ### Installing more swap memory
 
-[TO DO: Add test for this and explain it more]
+In order for passenger to work, we need some additional RAM freed up than is configured by default.  We do this through swapping memory.
+
+If you're interested, you can find more (information about swapping and memory usage here)[https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-12-04]
+
+Add this to your test file:
+
+```bash
+describe 'my_web_server_cookbook::passenger' do
+
+  describe command('gem list') do
+    its(:stdout) { should match /passenger/ }
+  end
+
+  describe package('apache2-dev') do
+    it { should be_installed }
+  end
+
+  describe package('ruby-dev') do
+    it { should be_installed }
+  end
+
+  describe package('libapr1-dev') do
+    it { should be_installed }
+  end
+
+  describe package('libaprutil1-dev') do
+    it { should be_installed }
+  end
+
+  describe command('swapon -s') do
+    its(:stdout) { should match /\/swap\s+file\s/ }
+  end
+end
+```
 
 Add this to your recipe file:
 
 ```bash
-
-  execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
+  execute 'create swap file' do
+    command "sudo dd if=/dev/zero of=/swap bs=1M count=1024"
     action :run
   end
 
-  execute "sudo mkswap /swap" do
+  execute 'create a linux swap area' do
+    command "sudo mkswap /swap"
     action :run
   end
 
-  execute "sudo swapon /swap" do
+  execute 'activate the swap file' do
+    command "sudo swapon /swap"
     action :run
   end
 ```
 
 Save and close the file.
 
-Now it's time to create an apache config file template.  Let's generate a template using this command:
+Now run converge.
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+And run the tests:
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And they should pass!
+
+But...there's still a problem.  Trying converging again.
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+And we receive this error:
+
+```bash
+  Mixlib::ShellOut::ShellCommandFailed
+  ------------------------------------
+  Expected process to exit with [0], but received '1'
+  ---- Begin output of sudo dd if=/dev/zero of=/swap bs=1M count=1024 ----
+  STDOUT:
+  STDERR: dd: failed to open ‘/swap’: Text file busy
+  ---- End output of sudo dd if=/dev/zero of=/swap bs=1M count=1024 ----
+  Ran sudo dd if=/dev/zero of=/swap bs=1M count=1024 returned 1
+```
+
+Looks like it errors out if we attempt to create the swap file twice.  Let's add a line to the passenger recipe to prevent this from happening.
+
+```bash
+  execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
+    action :run
+    not_if { ::File.exists?("/swap")}
+  end
+```
+
+And now converge again:
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+And run the tests:
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And they should pass!
+
+### Installing the Apache Passenger module
+
+Now it's time to get Passenger up and running with Apache. To do this, we need to install the passenger-install-apache2-module.  First, let's add a test.
+
+When the module is installed, there's a mod_passenger.so file on the server.  Our test will check that this is the case.
+
+```bash
+  describe file('/var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/apache2/mod_passenger.so') do
+    it { should be_file }
+  end
+```
+
+And run the tests:
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And, as expected, it fails.
+
+Now add this to your recipe file:
+
+```bash
+  execute 'passenger-install-apache2-module' do
+    command "sudo passenger-install-apache2-module --auto"
+    action :run
+  end
+```
+
+And converge and run the tests again.  (This converge will take awhile to run, the module takes some time to install).
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+Now run the tests.
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And they should pass!  One final thing, we don't want to install the module if it's already installed, at the very least it's an immense amount of unnecessary time to install.
+
+Add one line to you recipe to prevent running the module install when it has already been run.
+
+```bash
+  execute 'passenger-install-apache2-module' do
+    command "sudo passenger-install-apache2-module --auto"
+    action :run
+    not_if { ::File.exists?("/var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so")}
+  end
+```
+
+## Creating the Apache Config file
+
+Now it's time to create an apache config file template.  Let's generate a template.
+
+You need to run the generate template command from your my_web_server_chef_repo directory
+
+```bash
+  $ cd ~/my_web_server_chef_repo
+```
 
 ```bash
   $ chef generate template cookbooks/my_web_server_cookbook apache2.conf
 ```
 
-passenger_recipe.rb
+Now change directories back to your cookbook directory:
+
 ```bash
-include_recipe 'my_web_server_cookbook::ruby'
-
-package 'apache2-threaded-dev'
-
-package 'ruby-dev'
-
-package 'libapr1-dev'
-
-package 'libaprutil1-dev'
-
-gem_package 'passenger' do
-  action :install
-end
-
-execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
-  action :run
-  not_if { ::File.exists?("/swap")}
-end
-
-execute "sudo mkswap /swap" do
-  action :run
-  not_if { ::File.exists?("/swap")}
-end
-
-execute "sudo swapon /swap" do
-  action :run
-  not_if { ::File.exists?("/swap")}
-end
-
-execute 'passenger-install-apache2-module' do
-  command "sudo passenger-install-apache2-module --auto"
-  action :run
-  not_if { ::File.exists?("/var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/apache2/mod_passenger.so")}
-end
-
-template '/etc/apache2/apache2.conf' do
-  source 'apache2.conf.erb'
-end
-
-service 'apache2' do
-  action [:restart]
-end
+  $ cd cookbooks/my_web_server_cookbook
 ```
 
-passenger_spec.rb
+Then add in a couple of tests for the apache2 conf template to test/integration/passenger/serverspec/passenger_spec.rb
+
 ```bash
-require 'spec_helper'
-describe 'my_web_server_cookbook::passenger' do
-describe command('gem list') do
-its(:stdout) { should match /passenger/ }
-end
+  describe file('/etc/apache2/apache2.conf') do
+    it { should be_file }
 
-describe package('apache2-threaded-dev') do
-  it { should be_installed }
-end
-
-  describe package('ruby-dev') do
-      it { should be_installed }
-    end
-
-    describe package('libapr1-dev') do
-      it { should be_installed }
-    end
-
-    describe package('libaprutil1-dev') do
-      it { should be_installed }
-    end
-
-    describe file('/etc/apache2/apache2.conf') do
-      it { should be_file }
-    end
-
-    describe file('/etc/apache2/apache2.conf') do
-      it { should be_file }
-
-      its(:content) { should match /LoadModule passenger_module \/var\/lib\/gems\/1.9.1\/gems\/passenger-5\.0\.4\/buildout\/apache2\/mod_passenger.so/ }
-    end
-
-    describe command('passenger-memory-stats') do
-      its(:stdout) { should match /PassengerAgent watchdog/ }
-      its(:stdout) { should match /PassengerAgent server/ }
-      its(:stdout) { should match /PassengerAgent logger/ }
-    end
+    its(:content) { should match /LoadModule passenger_module \/var\/lib\/gems\/1.9.1\/gems\/passenger-5\.0\.5\/buildout\/apache2\/mod_passenger.so/ }
   end
 ```
 
-templates/default/apache2.conf.erb
+Then, run the tests.
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+As expected, it fails.
+
+Let's fill in the config file template.
+
+```bash
+  $ vim templates/default/apache2.conf.erb
+```
+
+With this content, including the lines we are expecting:
+
 ```bash
 # This is the main Apache server configuration file.  It contains the
 # configuration directives that give the server its instructions.
@@ -573,10 +704,24 @@ LoadModule passenger_module /var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/ap
 # vim: syntax=apache ts=4 sw=4 sts=4 sr noet
 ```
 
----- Passenger processes -----
-PID   VMSize    Private  Name
-------------------------------
-7849  371.1 MB  1.0 MB   PassengerAgent watchdog
-7857  443.1 MB  1.2 MB   PassengerAgent server
-7862  243.0 MB  1.1 MB   PassengerAgent logger
-### Processes:
+Now call this template from you passenger recipe file:
+
+```bash
+template '/etc/apache2/apache2.conf' do
+  source 'apache2.conf.erb'
+end
+```
+
+Then converge
+
+```bash
+  $ kitchen converge passenger-ubuntu-14-04-x64
+```
+
+And run your tests
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+And they pass!
