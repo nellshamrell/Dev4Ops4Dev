@@ -8,6 +8,24 @@ Let's generate a new recipe like so:
   $ chef generate recipe ruby
 ```
 
+Now we need to create the directory where our server specs will live:
+
+```bash
+  $ mkdir -p test/integration/ruby/serverspec
+```
+
+And create the test file
+
+```bash
+  $ touch test/integration/ruby/serverspec/ruby_spec.rb
+```
+
+And we need to be able to access a spec_helper similar to the one living in test/integration/default/serverspec.  In this case, let's copy that one into our new integration test directory.
+
+```bash
+  $ cp test/integration/default/serverspec/spec_helper.rb test/integration/ruby/serverspec
+```
+
 ## Installing a base Ruby
 
 We need to install a base version of Ruby for our system to use (though we will later be managing Ruby versions through RVM).  First, let's write a test:
@@ -78,7 +96,7 @@ And you should see a failure.  Now open your recipe file:
  And add in this content:
 
 ```bash
-  $ package ruby
+  package 'ruby'
 ```
 
 Now apply the Chef changes to your kitchen instance:
@@ -163,7 +181,7 @@ Now let's create a test for each of these packages.  Open up the test file:
 Then run these tests on your instance:
 
 ```bash
-  $ kitchen verify
+  $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 You'll see several failures.
@@ -209,13 +227,31 @@ And add in this content:
 Now apply these changes to your test instance with:
 
 ```bash
-  $ kitchen converge
+  $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 And run your tests:
 
 ```bash
-  $ kitchen verify
+  $ kitchen verify ruby-ubuntu-14-04-x64
+```
+
+Whoops, looks like we need to run apt-get update here as well.  Fortunately, we can include the default recipe with this one, which will ensure that apt-get update runs.  Add this content to the top of your recipe file.
+
+```bash
+  include_recipe 'my_web_server_cookbook::default'
+```
+
+Apply these changes:
+
+```bash
+  $ kitchen converge ruby-ubuntu-14-04-x64
+```
+
+And run your tests:
+
+```bash
+  $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 And now they should all pass!
@@ -231,6 +267,8 @@ The community cookbook we're using is the [rvm cookbook](https://supermarket.che
 ## Chef Supermarket
 
 We can pull the cookbook down from the Supermarket using Knife, a tool included with ChefDK.
+
+[TO DO: Explain more about knife cookbook site install, maybe show page on Supermarket]
 
 ```bash
   $ knife cookbook site install rvm
@@ -256,24 +294,53 @@ First, let's make that directory:
 Then create and open a file within that directory:
 
 ```bash
-  $ vim ~/.chef/knife.rb
+  $ sudo vim ~/.chef/knife.rb
 ```
 
 And add this content.  This ensures that knife will always looks for cookbooks within the working directory we are working in.
 
 ```bash
-  current_chef_dir = File.dirname(__FILE__)
-  working_dir = Dir.pwd
-
-  cookbook_paths = []
-  # some common paths created by `berks install` with `--path` option
-  cookbook_paths << File.join(working_dir, "cookbooks")
-  cookbook_paths << File.join(working_dir, "vendor", "cookbooks")
-  # traditional chef-repo cookbook path
-  cookbook_paths << File.join(current_chef_dir, "..", "cookbooks")
+  cookbook_path ['~/my_web_server_chef_repo/cookbooks/']
 ```
 
 Now try it again:
+
+```bash
+  $ knife cookbook site install rvm
+```
+
+Whoops, there's another error:
+
+```bash
+  ERROR: The cookbook repo /home/vagrant/my_web_server_chef_repo/cookbooks is not a git repository.
+  Use `git init` to initialize a git repo
+```
+
+The my_web_server_chef_repo/cookbooks directory needs to be a git repository.  Change to that directory:
+
+```bash
+  $ cd ~/my_web_server_chef_repo/cookbooks
+```
+
+And run this command:
+
+```bash
+  $ git init
+```
+
+Now we need to have at least one commit.  Add in the README.md
+
+```bash
+  $ git add README.md
+```
+
+Then commit the file
+
+```bash
+  $ git commit -m 'Initial Commit'
+```
+
+Now run the install command one more time:
 
 ```bash
   $ knife cookbook site install rvm
@@ -290,6 +357,14 @@ There will be lots of output, but at the end you'll see:
 The [rvm cookbook GitHub Page](https://github.com/martinisoft/chef-rvm) has good instructions on how to use the community cookbook to install RVM and Ruby.
 
 Next, you need to add the dependency on the rvm cookbook to your metadata file in your cookbook.
+
+Change back to the my_web_server_cookbook directory:
+
+```bash
+  $ cd my_web_server_cookbook
+```
+
+And open up the metadata file.
 
 ```bash
   $ vim metadata.rb
@@ -308,19 +383,15 @@ Now let's add a test to ensure that Ruby 2.1.3 is installed through rvm.
 [TO DO: Explain why we need to use 'bash -l -c' with Test Kitchen and ServerSpec]
 
 ```bash
-  require 'spec_helper'
-
-  describe 'my_web_server_cookbook::ruby' do
-    describe command('bash -l -c "rvm list"') do
-      its(:stdout) { should match /ruby-2.1.3/ }
-    end
+  describe command('bash -l -c "rvm list"') do
+    its(:stdout) { should match /ruby-2.1.3/ }
   end
 ```
 
 First, let's run those tests and watch them fail:
 
 ```bash
-  $ kitchen verify
+  $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 Now open up your recipe file and add in this content to make the tests pass.  Note that we need to include the default recipe from the rvm cookbook we just downloading from Supermarket.
@@ -336,13 +407,13 @@ Now open up your recipe file and add in this content to make the tests pass.  No
 Now apply the Chef changes:
 
 ```bash
-  $ kitchen converge
+  $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 And run the tests again:
 
 ```bash
-  $ kitchen verify
+  $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 Ruby and RVM are working!
