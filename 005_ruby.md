@@ -86,7 +86,6 @@ Now, run the tests:
 ```bash
   $ kitchen verify ruby-ubuntu-14-04-x64
 ```
-```
 
 And you should see a failure.  Now open your recipe file:
 

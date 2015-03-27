@@ -1213,6 +1213,7 @@ Then converge and run the tests:
 
 And looks like there's an error:
 
+```bash
   Mixlib::ShellOut::ShellCommandFailed
   ------------------------------------
   Expected process to exit with [0], but received '1'
@@ -1254,13 +1255,9 @@ And looks like there's an error:
   end
 ```
 
-This is happening because we already ran our Chef cookbooks, but it is trying to run our earliest cookbook (the default cookbook) and is running into problems because of our later cookbooks.  Let's fix this.
+This is happening because we already ran our Chef cookbooks, but it is trying to run our earliest cookbook (the default cookbook) and is running into problems because of our later cookbooks.  To make sure we can re-run our cookbook when we make changes, let's fix this.
 
 Let's create a new Apache config template for our default recipe to use so we don't run into this conflict.
-
-Open up you recipes/default.rb file and add this content:
-
-Now it's time to create an apache config file template.  Let's generate a template.
 
 You need to run the generate template command from your my_web_server_chef_repo directory
 

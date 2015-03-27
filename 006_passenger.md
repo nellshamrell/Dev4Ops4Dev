@@ -431,7 +431,7 @@ You need to run the generate template command from your my_web_server_chef_repo 
 ```
 
 ```bash
-  $ chef generate template cookbooks/my_web_server_cookbook apache2.conf
+  $ chef generate template cookbooks/my_web_server_cookbook passenger-apache2.conf
 ```
 
 Now change directories back to your cookbook directory:
