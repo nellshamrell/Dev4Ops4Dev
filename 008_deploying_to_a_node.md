@@ -2,35 +2,29 @@
 
 We're going to provision our test instance on Digital Ocean using the (knife digital ocean plug)[https://github.com/rmoriz/knife-digital_ocean]
 
-Go ahead and install the plugin on your workstation using this command.
+This plugin is pre-installed on your workshop VM, but we need to tell it how to find the credentials.
+
+
+Edit your ~/.chef/knife.rb
 
 ```bash
-  $ sudo chef gem install knife-digital_ocean
+   vagrant@workshop ~$ vim .chef/knife.rb
 ```
 
-If you get an error, install ruby-dev on your machine with
-
+And add the following line.  This will pass the access token, which is already available as an environment variable, into knife.
 ```bash
-  $ sudo apt-get install ruby-dev
-```
-
-Then re-run
-
-```bash
-  $ sudo gem install knife-digital_ocean
-```
-
-Next, you need to add the authorization token provided to you by the instructors to your knife config
-
-.chef/knife.rb
-```bash
-knife[:digital_ocean_access_token]   = 'token_provided_by_instructors'
+knife[:digital_ocean_access_token]   = ENV['DIGITALOCEAN_ACCESS_TOKEN']
 ```
 
 Now let's spin up a testing node!  Choose ONE person in your group to run this command to spin up a live VM on Digital Ocean - this will be our testing environment.
 
 ```bash
-  $ knife digital_ocean droplet create --server-name testing-vm-#{group number}.vm.io --image ubuntu-14-04-x64 --location sfo1 --size 1gb --ssh-keys #{key num provided by instructors}
+  vagrant@workshop ~$ knife digital_ocean droplet create \
+                             --server-name testing-vm-#{group number}.vm.io \
+                             --image ubuntu-14-04-x64 \
+                             --location sfo1 \ 
+                             --size 1gb \
+                             --ssh-keys $DIGITALOCEAN_SSH_KEY_IDS
 ```
 
 Take note of the IP address returned in the output and make sure to pass it on to each of your group members.

@@ -287,13 +287,13 @@ We need to add a config file for Knife.  I like to keep mine in a .chef director
 First, let's make that directory:
 
 ```bash
-  $ mkdir ~/.chef
+  $ mkdir -p ~/.chef
 ```
 
 Then create and open a file within that directory:
 
 ```bash
-  $ sudo vim ~/.chef/knife.rb
+  $ vim ~/.chef/knife.rb
 ```
 
 And add this content.  This ensures that knife will always looks for cookbooks within the working directory we are working in.
