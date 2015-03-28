@@ -26,7 +26,7 @@ Download the Vagrant package appropriate for your Operating System [here](http:/
 
 [TO DO: Decide if we want to provide Vagrant installation packages on a USB stick to avoid hitting the wifi so hard]
 
-### OS X
+### OS X and Linux
 
 Follow the Vagrant setup instructions located [here](https://docs.vagrantup.com/v2/getting-started/index.html)
 
@@ -52,11 +52,21 @@ Head on down to the "Using Vagrant" section of these instructions.
 
 ### Windows 8.1
 
-TODO
+Open up a command prompt by holding down the windows key and x, then clicking the windows start button at the bottom left of the screen, then selecting "Command Prompt."
 
-### Linux
+Run this command in the command prompt to create your project folder (call it whatever you like).
 
-TODO
+```bash
+  C: mkdir project_folder
+```
+
+Then switch to that folder with this command:
+
+```bash
+  C: cd project_folder
+```
+
+Head on down to the "Using Vagrant" section of these instructions.
 
 ## Starting Vagrant
 
@@ -119,8 +129,6 @@ Also notice that the prompt has changed, indicating that you on another machine 
 ```bash
   vagrant@d4o4d-workshop $ uname -a
 ```
-
-
 
 ## Vagrant Basics
 
@@ -243,7 +251,7 @@ It should now return:
 We installed several editors to suit various tastes.  As a safe default, we set EDITOR to nano in vagrant's .bash_profile .
 
 ```bash
-  sudo apt-get install emacs24-nox emacs24-el vim nano joe 
+  sudo apt-get install emacs24-nox emacs24-el vim nano joe
   sudo apt-get install tree
 
 ### Chef, Vagrant, and DigitalOcean drivers
