@@ -1,3 +1,5 @@
+We're going to use an automated deployment tool called [Capistrano](http://capistranorb.com/) to both do our initial deploy and future deploys.  Capistrano is frequently used with Ruby on Rails applications (it is written in Ruby) but can be used with other languages as well.
+
 # Setting up the Rails application
 ```bash
   $ cd widgetworld
