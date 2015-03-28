@@ -209,7 +209,7 @@ Now onto Test Driven Development.
 
 ## Test Drive Installing Apache with Chef
 
-[TO DO: Intro to TDD]
+Test Driven Development is the practice of writing automated tests, watching them fail, writing the code to make them pass, then refactoring.  We'll talk about this more in a bit, but for now let's juse dive in and get some practice with it.  Why would you do this?  Briefly, having automated tests prevents your code from breaking.  As code bases become large and complex, manually testing every single change (and all the potential unexpected consequences of the change) becomes impossible.  Having automated tests that you can run any time either assures you that your code has not broken something unexpectedly, or alerts you when it has an unexpected consequence.  Tests are also living, executable documentation.  Written documentation separate from the code base goes out of date quickly and requires massive discipline to keep up to date.  Tests, on the other hand, actually execute the code.  They clearly state that, gicen a cert
 
 We're going to re-create the apache2 cookbook we made earlier, but this time using Test Driven Development methodology.  Go ahead and delete the cookbook you created earlier with:
 
@@ -1011,3 +1011,10 @@ The run your tests with:
 And our test passes!
 
 Now we have a test driven Chef recipe to install Apache!
+
+So why would you do this every day with the code you write?  Briefly, having automated tests prevents your code from breaking.  As code bases become large and complex, manually testing every single change (and all the potential unexpected consequences of the change) becomes impossible.  Having automated tests that you can run any time either assures you that your code has not broken something unexpectedly, or alerts you when it has an unexpected consequence.  Tests are also living, executable documentation.  Written documentation separate from the code base goes out of date quickly and requires massive discipline to keep up to date.  Tests, on the other hand, actually execute the code.  They clearly state that, given a certain input, a piece of code should return a certain output.  Finally, Test Driven code by nature tends to be modular, clearer, and consist of smaller methods.  These are the hallmarks of good, maintainable code.
+
+For more information on Test Driven Development with Chef, check out [Test Driven Infrastructure with Chef](http://www.amazon.com/Test-Driven-Infrastructure-Chef-Behavior-Driven-Development/dp/1449372201) by Stephen Nelson-Smith.
+
+ The type of testing we're doing in this workshop is called integration testing - it tests our code as a whole, rather than individual methods.  There is another testing syntax called [ChefSpec](https://github.com/sethvargo/chefspec) which allows for unit testing - testing small bits of code in isolation.
+
