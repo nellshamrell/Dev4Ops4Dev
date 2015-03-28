@@ -10,12 +10,49 @@ def main()
 end
 
 def parse_command_line_opts()
-# Parse command line options 
-#   prod or testing
-#   groups to have mercy on 
-#   groups to smite
-#   sleep time
-#   chance of chaos
+  parsed_options = {}
+
+  # Set defaults
+  parsed_options[:environment] = 'testing'
+  parsed_options[:mercy] = []
+  parsed_options[:smite] = []
+  parsed_options[:wait] = 1000
+  parsed_options[:chance] = 10
+
+  OptionParser.new do |cfg|
+    cfg.banner = "Usage: chaos.rb [options]"
+
+    #   prod or testing
+    cfg.on("-p", "--production", "Run against production env") do |e|
+      parsed_options[:environment] = 'production'
+    end
+    cfg.on("-t", "--testing", "Run against testing env") do |e|
+      parsed_options[:environment] = 'testing'
+    end
+
+    #   group(s) to have mercy on 
+    cfg.on("-mGROUP", "--mercy GROUP", "Spare GROUP from chaos") do |m|
+      parsed_options[:mercy] << m
+    end
+
+    #   groups to smite
+    cfg.on("-sGROUP", "--smite GROUP", "Ensure chaos hits GROUP") do |s|
+      parsed_options[:smite] << s
+    end
+
+    #   sleep time
+    cfg.on("-wMSEC", "--wait MSEC", "Wait MSEC milliseconds between droplets", OptionParser::DecimalInteger) do |w|
+      parsed_options[:wait] = w
+    end
+
+    #   chance of chaos
+    cfg.on("-cPCT", "--chance PCT", "Percent (1-100) chance of chaos.", OptionParser::DecimalInteger) do |c|
+      parsed_options[:chance] = c
+    end
+    
+  end.parse!
+  return parsed_options
+
 end
 
 
