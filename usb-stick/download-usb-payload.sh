@@ -5,7 +5,7 @@
 #                                 "UI"
 #===========================================================================================#
 DOWNLOAD_THROTTLE=500k
-BOX_URL="https://www.dropbox.com/s/1o98s81qqz1mzkw/d4-workshop-0.4.0.box?dl=0"
+BOX_URL="https://www.dropbox.com/s/4rquhowc55sj1nx/d4-workshop-0.5.0.box?dl=0"
 COURSE_REPO="git@github.com:nellshamrell/Dev4Ops4Dev.git"   # TODO - this is private
 
 # Debugging controls
