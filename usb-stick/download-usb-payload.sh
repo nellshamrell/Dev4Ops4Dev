@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 0.4.0
-BOX_URL="https://www.dropbox.com/s/1o98s81qqz1mzkw/d4-workshop-0.4.0.box?dl=0"
+
+BOX_URL="https://www.dropbox.com/s/4rquhowc55sj1nx/d4-workshop-0.5.0.box?dl=0"
 
 # TODO: windows aux tools
 # http://the.earth.li/~sgtatham/putty/latest/x86/putty-0.64-installer.exe
