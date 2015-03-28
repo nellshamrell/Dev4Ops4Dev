@@ -5,7 +5,12 @@ Now let's create an actual production instance, one that we will direct the user
 This is very similar to creating our test server.
 
 ```bash
-    vagrant@workshop $ knife digital_ocean droplet create --server-name production-vm-group#{group number}.vm.io --image ubuntu-14-04-x64 --location sfo1 --size 1gb --ssh-keys #{key num provided by instructors}
+  vagrant@workshop ~$ knife digital_ocean droplet create \
+                             --server-name production-vm-#{group number}.vm.io \
+                             --image ubuntu-14-04-x64 \
+                             --location sfo1 \
+                             --size 1gb \
+                             --ssh-keys $DIGITALOCEAN_SSH_KEY_IDS
 ```
 
 Take note of the IP address returned in the output and make sure to pass it on to each of your group members.
