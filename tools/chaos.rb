@@ -55,16 +55,51 @@ def parse_command_line_opts()
 
 end
 
+def dropname2groupname(dname)
+  # testing-vm-#{group name}.vm.io 
+  return dname.split('.')[0].split('-')[-1]
+end
+
+def dropname2envname(dname)
+  # testing-vm-#{group name}.vm.io 
+  return dname.split('.')[0].split('-')[0]
+end
+
+def log (level, msg)
+  time = DateTime.now().strftime('%H:%M:%S')
+  puts sprintf('%5s - %s - %s',level.to_s.upcase(), time, msg) 
+end
+
 
 def the_center_does_not_hold(opts)
+  log(:info, "Connecting to DO")
+  dk = DropletKit::Client.new(access_token: ENV['DIGITALOCEAN_ACCESS_TOKEN'])
 
-  # dk = DropletKit::Client.new(access_token: ENV['DIGITALOCEAN_ACCESS_TOKEN'])
+  # Loop forever
+  while true do
+    #   Fetch a list of running droplets
+    log(:info, "Fetching droplet list")
+    drops = dk.droplets.all.sort { |a,b| a.name <=> b.name }
 
-# Loop forever
-#   Fetch a list of running droplets
-#   Filter based on smite and mercy
-#   Filter based on prod or testing
-#   Loop over droplets
+    #   Filter based on status
+    inactive = drops.select { |d| d.status != 'active' }
+    drops -= inactive
+
+    #   Filter based on mercy
+    pardoned = drops.select { |d| opts[:mercy].include?(dropname2groupname(d.name)) }
+    drops -= pardoned
+
+    #   Filter based on prod or testing
+    nimby = drops.select { |d| opts[:environment] != dropname2envname(d.name) }
+    drops -= nimby
+
+    # TODO: report on counts   
+
+
+    #   Loop over droplets
+    drops.each do |drop|
+      log(:debug, "Examining droplet #{drop.name}")
+      # byebug
 #     Connect via SSH
 #        check for running service
 #          if running
@@ -72,7 +107,13 @@ def the_center_does_not_hold(opts)
 #            based on dice and smite
 #            halt service
 #     sleep
+    end
+  end
+end
 
+Signal.trap('SIGINT') do
+  puts "Exiting"
+  exit(0)
 end
 
 main()
