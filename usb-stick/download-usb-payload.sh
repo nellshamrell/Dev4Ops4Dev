@@ -1,4 +1,27 @@
-#!/bin/bash
+#!/bin/bash 
+
+IMAGE_VERSION="0.1"
+IMAGE_PATH=~/Dev4Ops4Dev-USB-Image-${IMAGE_VERSION}.dmg
+IMAGE_MNT=~/Dev4Ops4Dev-USB
+IMAGE_SIZE=2048
+
+echo "Creating Disk Image"
+hdiutil create -megabytes $IMAGE_SIZE -fs MS-DOS -volname Dev4Ops4Dev -o $IMAGE_PATH
+if [[ $? -gt 0 ]]; then
+  echo "ERROR: Unable to create empty image! "
+  exit 1
+fi
+
+echo "Mounting Disk Image (${IMAGE_MNT})"
+hdiutil attach -mountpoint $IMAGE_MNT $IMAGE_PATH
+if [[ $? -gt 0 ]]; then
+  echo "ERROR: Unable to mount image!"
+  exit 1
+fi
+
+cd ${IMAGE_MNT}
+
+echo "Fetching Contents"
 
 # 0.4.0
 BOX_URL="https://www.dropbox.com/s/1o98s81qqz1mzkw/d4-workshop-0.4.0.box?dl=0"
@@ -79,3 +102,12 @@ if which tree 2>/dev/null >/dev/null; then
 fi
 
 du -h -s
+
+echo "Closing up USB Image"
+hdiutil unmount ${IMAGE_MNT}
+
+echo "Done!  Image ${IMAGE_PATH} ready for use!"
+echo ""
+echo "1) Insert a USB Key, find the device number using: diskutil list"
+echo "2) Unmount any volumes on device using: diskutil unmountDisk /dev/diskX"
+echo "3) To create key, simply: dd if=${IMAGE_PATH} of=/dev/rdiskX bs=1m"
