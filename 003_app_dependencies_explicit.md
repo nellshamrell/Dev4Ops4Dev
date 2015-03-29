@@ -74,10 +74,33 @@ Two rich areas of exploration:
 
 #### Examine the running instances
 
-If real instances exist, login and look around.  
+This is the most common method for Operations folks (Systems Administrators) 
+to determine an applications topology.  
 
-* What services are running according to init.d?
-* What ports are listening, according to netstat -nlp --inet? 
+We start by logging into a node and examining the running proccesses using 
+_ps -ef_ (or your favorite combination of ps flags).
+
+Then we examine listening network ports and established network connections
+to other hosts using _netstat -an --inet_:
+
+```bash
+vagrant@vagrant-ubuntu-trusty-64:~$ netstat -an --inet
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State
+tcp        0      0 0.0.0.0:42436           0.0.0.0:*               LISTEN
+tcp        0      0 0.0.0.0:111             0.0.0.0:*               LISTEN
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN
+tcp        0      0 10.0.2.15:22            10.0.2.2:65438          ESTABLISHED
+udp        0      0 0.0.0.0:111             0.0.0.0:*
+udp        0      0 0.0.0.0:44193           0.0.0.0:*
+udp        0      0 0.0.0.0:748             0.0.0.0:*
+udp        0      0 127.0.0.1:812           0.0.0.0:*
+udp        0      0 0.0.0.0:68              0.0.0.0:*
+udp        0      0 0.0.0.0:14405           0.0.0.0:*
+```
+
+In the above example we can see that we have several open ports but our only established 
+connection here is related to vagrant (for ssh).
 
 #### Read the applciation config files
 
@@ -149,3 +172,5 @@ things that may be non-starters:
   * WEBrick instead of a real webserver
   * etc
 * getting a developer's time away from feature work may not be politically possible
+
+
