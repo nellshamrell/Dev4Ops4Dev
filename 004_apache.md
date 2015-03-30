@@ -1,5 +1,3 @@
-
-
 Apache is the main piece of our web server, in fact it's called a "Web Server."  It's what enables communication over networks, which allows our server to connect and be connected to the outside world.
 
 # Install Apache by hand
@@ -209,7 +207,7 @@ Now onto Test Driven Development.
 
 ## Test Drive Installing Apache with Chef
 
-[TO DO: Intro to TDD]
+Test Driven Development is the practice of writing automated tests, watching them fail, writing the code to make them pass, then refactoring.  We'll talk about this more in a bit, but for now let's juse dive in and get some practice with it.  Why would you do this?  Briefly, having automated tests prevents your code from breaking.  As code bases become large and complex, manually testing every single change (and all the potential unexpected consequences of the change) becomes impossible.  Having automated tests that you can run any time either assures you that your code has not broken something unexpectedly, or alerts you when it has an unexpected consequence.  Tests are also living, executable documentation.  Written documentation separate from the code base goes out of date quickly and requires massive discipline to keep up to date.  Tests, on the other hand, actually execute the code.  They clearly state that, gicen a cert
 
 We're going to re-create the apache2 cookbook we made earlier, but this time using Test Driven Development methodology.  Go ahead and delete the cookbook you created earlier with:
 
@@ -423,7 +421,7 @@ You should see output similar to this:
 The final thing we need to do is install Chef Client on this instance in order to run our tests.  To do that, run:
 
 ```bash
-  $ kitchen setup
+  $ kitchen converge
 ```
 
 You'll see lots of output.  When it completes, run kitchen list one last time:
@@ -460,7 +458,7 @@ Save and close the file.
 Now we'll use Test Kitchen to run this code.  To do this, we use the "kitchen converge" command:
 
 ```bash
-  $ kitchen converge default-ubuntu-1404
+  $ kitchen converge default-ubuntu-14-04-x64
 ```
 
 At some point in the output, you should see this:
@@ -640,7 +638,7 @@ Let's scroll up a bit until we find:
 
 We need to run apt-get update on our test instance before it can find and install the apache2 package.
 
-Let's add that to our default Chef recipe.  First, let's write a test.  If apt-get update has been run, then we should not receive a message similar to "E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?"
+Let's add that to our default Chef recip.  First, a test.  Let's make sure that apt-get update has been run today.
 
 Open up your test file
 
@@ -668,13 +666,25 @@ And, as expected, we get a failure.  Now let's make it pass.
   $ vim recipes/default.rb
 ```
 
-And add this content:
+And add this content BEFORE the package 'apache2' call:
 
 ```bash
   execute 'apt_update' do
     command "apt-get update"
     action :run
   end
+```
+
+Now converge these changes
+
+```bash
+  $ kitchen converge
+```
+
+And run the tests again
+
+```bash
+  $ kitchen verify
 ```
 
 Huzzah! It passes!
@@ -708,13 +718,7 @@ And add this content:
   end
 ```
 
-Now, run:
-
-```bash
-  $ kitchen converge
-```
-
-To apply the Chef changes to the Test Kitchen instance, then run the test again with:
+Now, run the tests again.
 
 ```bash
   $ kitchen verify
@@ -785,7 +789,7 @@ And add this content:
 
 [TO DO: Should there be a way to simulate the service not working with test kitchen?]
 
-Now re-run the tests with:
+Now converge these changes:
 
 ```bash
   $ kitchen converge
@@ -1011,3 +1015,12 @@ The run your tests with:
 And our test passes!
 
 Now we have a test driven Chef recipe to install Apache!
+
+So why would you do this every day with the code you write?  Briefly, having automated tests prevents your code from breaking.  As code bases become large and complex, manually testing every single change (and all the potential unexpected consequences of the change) becomes impossible.  Having automated tests that you can run any time either assures you that your code has not broken something unexpectedly, or alerts you when it has an unexpected consequence.  Tests are also living, executable documentation.  Written documentation separate from the code base goes out of date quickly and requires massive discipline to keep up to date.  Tests, on the other hand, actually execute the code.  They clearly state that, given a certain input, a piece of code should return a certain output.  Finally, Test Driven code by nature tends to be modular, clearer, and consist of smaller methods.  These are the hallmarks of good, maintainable code.
+
+Simply put - Test Driven Development makes your infrastructure code easier to maintain as it changes, and there will always be change.
+
+For more information on Test Driven Development with Chef, check out [Test Driven Infrastructure with Chef](http://www.amazon.com/Test-Driven-Infrastructure-Chef-Behavior-Driven-Development/dp/1449372201) by Stephen Nelson-Smith.
+
+ The type of testing we're doing in this workshop is called integration testing - it tests our code as a whole, rather than individual methods.  There is another testing syntax called [ChefSpec](https://github.com/sethvargo/chefspec) which allows for unit testing - testing small bits of code in isolation.
+

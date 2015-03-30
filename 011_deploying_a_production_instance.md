@@ -32,7 +32,19 @@ First, a bit of refactoring.  Open up your template/default/app-apache2.conf fil
 
 See how we hard coded the IP address into it?  This will make it not work on our production VM.  Let's refactor this.
 
-[TO DO: REFACTOR INTO ATTRIBUTE, for now we're manually changing it]
+Change this line:
+
+```bash
+  ServerName 192.241.201.66
+```
+
+To this line:
+
+```bash
+  ServerName <%= node["ip_address"] %>
+```
+
+And we'll set that node attribute next
 
 ## Node Config
 
@@ -46,6 +58,7 @@ Now open up the json file and the add this content to run each of the recipes in
 
 ```bash
   {
+    "ip_address": [production instance ip address]
     "run_list": [
       "recipe[my_web_server_cookbook::default]",
       "recipe[my_web_server_cookbook::passenger]",

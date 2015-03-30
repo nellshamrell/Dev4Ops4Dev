@@ -91,7 +91,7 @@ Then create the test instance.
 And set it up:
 
 ```bash
-  $ kitchen setup passenger-ubuntu-14-04-x64
+  $ kitchen converge passenger-ubuntu-14-04-x64
 ```
 
 Now run these tests:
@@ -126,8 +126,6 @@ Open up the recipe file:
 ```
 
 And add in this content:
-
-[TO DO: explain why not using gem package]
 
 ```bash
   execute 'sudo gem install passenger' do
@@ -257,10 +255,11 @@ Now let's install the module which will allow passenger to work with Apache
 
 In order for passenger to work, we need some additional RAM freed up than is configured by default.  We do this through swapping memory.
 
-If you're interested, you can find more (information about swapping and memory usage here)[https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-12-04]
+If you're interested, you can find more [information about swapping and memory usage here](https://www.digitalocean.com/community/tutorials/how-to-add-swap-on-ubuntu-12-04)
 
 Add this to your test file:
 
+test/integration/passenger/serverspec/passenger_spec.rb
 ```bash
 describe 'my_web_server_cookbook::passenger' do
 
@@ -288,6 +287,12 @@ describe 'my_web_server_cookbook::passenger' do
     its(:stdout) { should match /\/swap\s+file\s/ }
   end
 end
+```
+
+Then run your tests:
+
+```bash
+  $ kitchen verify passenger-ubuntu-14-04-x64
 ```
 
 Add this to your recipe file:
@@ -346,8 +351,22 @@ And we receive this error:
 
 Looks like it errors out if we attempt to create the swap file twice.  Let's add a line to the passenger recipe to prevent this from happening.
 
+recipes/passenger.rb
 ```bash
-  execute "sudo dd if=/dev/zero of=/swap bs=1M count=1024" do
+  execute 'create swap file' do
+    command "sudo dd if=/dev/zero of=/swap bs=1M count=1024"
+    action :run
+    not_if { ::File.exists?("/swap")}
+  end
+
+  execute 'create a linux swap area' do
+    command "sudo mkswap /swap"
+    action :run
+    not_if { ::File.exists?("/swap")}
+  end
+
+  execute 'activate the swap file' do
+    command "sudo swapon /swap"
     action :run
     not_if { ::File.exists?("/swap")}
   end
@@ -374,7 +393,7 @@ Now it's time to get Passenger up and running with Apache. To do this, we need t
 When the module is installed, there's a mod_passenger.so file on the server.  Our test will check that this is the case.
 
 ```bash
-  describe file('/var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/apache2/mod_passenger.so') do
+  describe file('/var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so') do
     it { should be_file }
   end
 ```
@@ -461,7 +480,7 @@ As expected, it fails.
 Let's fill in the config file template.
 
 ```bash
-  $ vim templates/default/apache2.conf.erb
+  $ vim templates/default/passenger-apache2.conf.erb
 ```
 
 With this content, including the lines we are expecting:
@@ -695,9 +714,9 @@ IncludeOptional conf-enabled/*.conf
 # Include the virtual host configurations:
 IncludeOptional sites-enabled/*.conf
 
-LoadModule passenger_module /var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/apache2/mod_passenger.so
+LoadModule passenger_module /var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so
 <IfModule mod_passenger.c>
-  PassengerRoot /var/lib/gems/1.9.1/gems/passenger-5.0.4
+  PassengerRoot /var/lib/gems/1.9.1/gems/passenger-5.0.5
   PassengerDefaultRuby /usr/bin/ruby1.9.1
 </IfModule>
 

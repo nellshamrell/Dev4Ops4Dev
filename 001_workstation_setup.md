@@ -26,7 +26,7 @@ Download the Vagrant package appropriate for your Operating System [here](http:/
 
 [TO DO: Decide if we want to provide Vagrant installation packages on a USB stick to avoid hitting the wifi so hard]
 
-### OS X
+### OS X and Linux
 
 Follow the Vagrant setup instructions located [here](https://docs.vagrantup.com/v2/getting-started/index.html)
 
@@ -52,11 +52,21 @@ Head on down to the "Using Vagrant" section of these instructions.
 
 ### Windows 8.1
 
-TODO
+Open up a command prompt by holding down the windows key and x, then clicking the windows start button at the bottom left of the screen, then selecting "Command Prompt."
 
-### Linux
+Run this command in the command prompt to create your project folder (call it whatever you like).
 
-TODO
+```bash
+  C: mkdir project_folder
+```
+
+Then switch to that folder with this command:
+
+```bash
+  C: cd project_folder
+```
+
+Head on down to the "Using Vagrant" section of these instructions.
 
 ## Starting Vagrant
 
@@ -104,8 +114,6 @@ Logging into a Vagrant box from Windows is a little more complicated, because wi
 
 Zack Wallace has a fantastic blog post called ["Getting Started with Vagrant on Window"](http://www.sitepoint.com/getting-started-vagrant-windows/).  Follow the instructions in the "Now I Can Access my Server, Right?" section to ssh into your Vagrant box.
 
-## Updating your system
-
 ## Look around
 
 Look around!  Your development machine should have some tools - some familiar, some perhaps not:
@@ -120,7 +128,29 @@ Also notice that the prompt has changed, indicating that you on another machine 
   vagrant@d4o4d-workshop $ uname -a
 ```
 
+## Set your group name
 
+Within your VM, we'd like to be able to reference your workshop group name.  To do that, we'll add an environment variable.  
+
+This command will add a line to your user profile to set a new variable.  Use the real name of your group here
+
+```bash
+  vagrant@workshop $ echo 'export GROUP_NAME=lasagna' >> ~/.bash_profile
+```
+
+This command will re-load your profile:
+
+```bash
+  vagrant@workshop $ source ~/.bash_profile
+```
+
+And this command will tell you if you did it right:
+
+```bash
+  vagrant@workshop $ echo $GROUP_NAME
+```
+
+You should see the name of your group.  If not, raise your hand.
 
 ## Vagrant Basics
 
@@ -243,7 +273,7 @@ It should now return:
 We installed several editors to suit various tastes.  As a safe default, we set EDITOR to nano in vagrant's .bash_profile .
 
 ```bash
-  sudo apt-get install emacs24-nox emacs24-el vim nano joe 
+  sudo apt-get install emacs24-nox emacs24-el vim nano joe
   sudo apt-get install tree
 
 ### Chef, Vagrant, and DigitalOcean drivers
