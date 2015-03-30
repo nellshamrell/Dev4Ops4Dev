@@ -1,3 +1,51 @@
+# A Fresh Start
+
+For the sake of the workshop, let's all start with the same cookbook.  This is the end product of the previous lessons.
+
+Make sure you're in your home directory.
+
+```bash
+  $ cd ~
+```
+
+Then generate a new Chef repo
+
+```bash
+  $ chef generate repo fresh_start_web_server_repo
+```
+
+Switch into the cookbooks directory of this repo
+
+```bash
+  $ cd fresh_start_web_server_repo/cookbooks
+```
+
+Then clone this git repository, which contains the completed version of the cookbook from the previous lessons.  Note that we're calling the directory it is cloned into my_web_server_cookbook
+
+```bash
+  $ git clone git@github.com:nellshamrell/dev_4_ops_4_devs_cookbook.git my_web_server_cookbook
+```
+
+Change into that directory:
+
+```bash
+  $ cd my_web_server_cookbook
+```
+
+Now we're going to checkout an already make branch from the remote git repository (the one we just cloned).  Check it out like this
+
+```bash
+  $ git checkout -b without-app-recipe origin/without-app-recipe
+```
+
+And you should see this output:
+
+```bash
+  Switched to a new branch 'without-app-recipe'
+```
+
+The branch is called "without-app-recipe" because we are going to add a recipe called app!  Not just yet, though...
+
 # Provisioning a Server
 
 We're going to provision our test instance on Digital Ocean using the (knife digital ocean plug)[https://github.com/rmoriz/knife-digital_ocean]
