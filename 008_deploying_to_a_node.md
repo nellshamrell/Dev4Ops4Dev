@@ -46,6 +46,22 @@ And you should see this output:
 
 The branch is called "without-app-recipe" because we are going to add a recipe called app!  Not just yet, though...
 
+Remember how we made that attributes file and included a default password for postgres?  Let's create that now:
+
+```bash
+  $ mkdir attributes
+```
+
+```bash
+  $ touch atttibutes/default.rb
+```
+
+Now open that file up and add this content:
+
+```bash
+  default['my_web_server_cookbook']['postgres_password'] = [random password you generate]
+```
+
 # Provisioning a Server
 
 We're going to provision our test instance on Digital Ocean using the (knife digital ocean plug)[https://github.com/rmoriz/knife-digital_ocean]
