@@ -75,10 +75,10 @@ Next you'll need to create a new test instance for the new suite:
   $ kitchen create ruby-ubuntu-14-04-x64
 ```
 
-And then set it up with Chef:
+And then converge on it.
 
 ```bash
-  $ kitchen setup ruby-ubuntu-14-04-x64
+  $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 Now, run the tests:
@@ -229,13 +229,7 @@ Now apply these changes to your test instance with:
   $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
-And run your tests:
-
-```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
-```
-
-Whoops, looks like we need to run apt-get update here as well.  Fortunately, we can include the default recipe with this one, which will ensure that apt-get update runs.  Add this content to the top of your recipe file.
+Whoops, looks like we need to run apt-get update here as well.  Fortunately, we can include the default recipe with this one, which will ensure that apt-get update runs.  Add this content to the top of your recipes/ruby.rb file.
 
 ```bash
   include_recipe 'my_web_server_cookbook::default'
@@ -257,17 +251,15 @@ And now they should all pass!
 
 ## Installing RVM and Ruby
 
-[TO DO: Explain more about RVM]
+Ruby has several different versions, the most recent of which is Ruby 2.1. It helps immensely to have a Ruby Version Manager to deal with compiling and managing Ruby versions.  For this workshop, we're going to use [RVM](https://rvm.io/), but there are also alternatives including [rbenv](https://github.com/sstephenson/rbenv) and [chruby](https://github.com/postmodern/chruby)
 
-Installing RVM with Chef is can be complicated.  Fortunately, someone has already done much of the work for us.  Rather than creating your own, it is sometimes much easier to use a community cookbook.
+Installing RVM with Chef can be frustratingly complicated.  Fortunately, someone has already done much of the work for us.  Rather than creating your own, it is sometimes much easier to use a community cookbook.
 
 The community cookbook we're using is the [rvm cookbook](https://supermarket.chef.io/cookbooks/rvm), available on the Chef Supermarket community cookbook site.
 
 ## Chef Supermarket
 
-We can pull the cookbook down from the Supermarket using Knife, a tool included with ChefDK.
-
-[TO DO: Explain more about knife cookbook site install, maybe show page on Supermarket]
+We can pull the cookbook down from the [Supermarket](https://supermarket.chef.io/) (Chef's Community Cookbook Site) using Knife, a tool included with ChefDK.
 
 ```bash
   $ knife cookbook site install rvm
@@ -290,7 +282,7 @@ First, let's make that directory:
   $ mkdir ~/.chef
 ```
 
-Then create and open a file within that directory:
+Then create and open a file within that directory with your editor of choice:
 
 ```bash
   $ sudo vim ~/.chef/knife.rb
@@ -379,8 +371,7 @@ Save and close the file.
 
 Now let's add a test to ensure that Ruby 2.1.3 is installed through rvm.
 
-[TO DO: Explain why we need to use 'bash -l -c' with Test Kitchen and ServerSpec]
-
+test/integration/ruby/serverspec/ruby_spec.rb
 ```bash
   describe command('bash -l -c "rvm list"') do
     its(:stdout) { should match /ruby-2.1.3/ }
