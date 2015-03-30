@@ -2,9 +2,9 @@
 
 Cloud is commonly seperated into 3 types of offerings:
 
-# Infrastructure as a Service (IaaS): A hosted solution offering primatives on which to build solutions
-# Platform as a Service (PaaS): A service which can accept and run code using magic
-# Software as a Service (SaaS): An application in the cloud ready-to-use, typically built on IaaS or PaaS.
+* Infrastructure as a Service (IaaS): A hosted solution offering primatives on which to build solutions
+* Platform as a Service (PaaS): A service which can accept and run code using magic
+* Software as a Service (SaaS): An application in the cloud ready-to-use, typically built on IaaS or PaaS.
 
 Today containers are asserting themselves as a possible new layer between IaaS and PaaS, 
 but currently such offerings are just Docker shims running on top of existing IaaS offerings.
