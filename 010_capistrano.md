@@ -2,13 +2,13 @@ We're going to use an automated deployment tool called [Capistrano](http://capis
 
 # Setting up the Rails application
 ```bash
-  $ cd ~/widgetworld
+  vagrant@workshop $ cd ~/widgetworld
 ```
 
 Open up the Gemfile
 
 ```bash
-  $ vim Gemfile
+  vagrant@workshop $ vim Gemfile
 ```
 
 Add this content
@@ -24,7 +24,7 @@ end
 Then run:
 
 ```bash
-  $ bundle
+  vagrant@workshop $ bundle
 ```
 
 This will install all the necessary ruby gems for this application, including the ones needed for running Capistrano.
@@ -41,14 +41,14 @@ If you receive this error:
 Run this on your development VM:
 
 ```bash
-  $ sudo apt-get install postgresql-client libpq5 libpq-dev
-  $ sudo gem install pg -v '0.17.1'
+  vagrant@workshop $ sudo apt-get install postgresql-client libpq5 libpq-dev
+  vagrant@workshop $ sudo gem install pg -v '0.17.1'
 ```
 
 Then rerun:
 
 ```bash
-  $ bundle
+  vagrant@workshop $ bundle
 ```
 
 If you continue to get the same error, comment out the pg gem line in your Gemfile
@@ -62,7 +62,7 @@ If you continue to get the same error, comment out the pg gem line in your Gemfi
 Then rerun:
 
 ```bash
-  $ bundle
+  vagrant@workshop $ bundle
 ```
 
 # Installing and Configuring Capistrano
@@ -70,13 +70,13 @@ Then rerun:
 There is also some special additional installation for capistrano.  Run this command, which will add some additional Capistrano config files.
 
 ```bash
-  $ cap install
+  vagrant@workshop $ cap install
 ```
 
 Next, open your Capfile in your favorite editor
 
 ```bash
-   $ vim Capfile
+  vagrant@workshop $ vim Capfile
 ```
 
 Uncomment these lines
@@ -95,9 +95,9 @@ So it looks like this
 
  Next, open up the config/deploy.rb file with your favorite text editor
 
- ```bash
-  $ vim config/deploy.rb
- ```
+```bash
+  vagrant@workshop $ vim config/deploy.rb
+```
 
  Change these to lines
  ```bash
@@ -166,31 +166,31 @@ We need to change the owner of this directory to deploy
 First, change directories back to your cookbook.
 
 ```bash
-  $ cd ~/fresh_start_web_server_repo/cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd ~/fresh_start_web_server_repo/cookbooks/my_web_server_cookbook
 ```
 
 Let's create a new recipe, this one specifically for the app.
 
 ```bash
-  $ chef generate recipe app
+  vagrant@workshop $ chef generate recipe app
 ```
 
 Now we need to create the directory where our server specs will live:
 
 ```bash
-  $ mkdir -p test/integration/app/serverspec
+  vagrant@workshop $ mkdir -p test/integration/app/serverspec
 ```
 
 And create the test file
 
 ```bash
-  $ touch test/integration/app/serverspec/app_spec.rb
+  vagrant@workshop $ touch test/integration/app/serverspec/app_spec.rb
 ```
 
 And we need to be able to access a spec_helper similar to the one living in test/integration/default/serverspec.  In this case, let's copy that one into our new integration test directory.
 
 ```bash
-  $ cp test/integration/default/serverspec/spec_helper.rb test/integration/app/serverspec
+  vagrant@workshop $ cp test/integration/default/serverspec/spec_helper.rb test/integration/app/serverspec
 ```
 
 Now let's create some tests, checking that the /var/www directory is owned by deploy and grouped in the deploy group.
@@ -216,7 +216,7 @@ Now we need to add this test suite to our .kitchen.yml file so Test Kitchen will
 Open up you .kitchen.yml file
 
 ```bash
-  $ vim .kitchen.yml
+  vagrant@workshop $ vim .kitchen.yml
 ```
 
 And add this content:
@@ -252,19 +252,19 @@ suites:
 Next you'll need to create a new test instance for the new suite:
 
 ```bash
-  $ kitchen create app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen create app-ubuntu-14-04-x64
 ```
 
 And then set it up with Chef:
 
 ```bash
-  $ kitchen setup app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen setup app-ubuntu-14-04-x64
 ```
 
 Now, run the tests:
 
 ```bash
-  $ kitchen verify app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify app-ubuntu-14-04-x64
 ```
 
 And they should fail.
@@ -284,13 +284,13 @@ execute 'change owner and group' do
 Now apply the changes:
 
 ```bash
-  $ kitchen converge app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge app-ubuntu-14-04-x64
 ```
 
 And run the tests again
 
 ```bash
-  $ kitchen verify app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify app-ubuntu-14-04-x64
 ```
 
 And they should pass!
@@ -325,7 +325,7 @@ This way it will only apply changes from our app recipe and avoid a lengthy reco
 Now, apply this to your staging node with:
 
 ```bash
-  $ knife solo cook root@[your staging instance ip]
+  vagrant@workshop $ knife solo cook root@[your staging instance ip]
 ```
 
 ## Setting Capistrano roles
@@ -333,13 +333,13 @@ Now, apply this to your staging node with:
 Now change back to your widgetworld directory
 
 ```bash
-  $ cd ~/widgetworld
+  vagrant@workshop $ cd ~/widgetworld
 ```
 
 Take a look at the various deploy configs:
 
 ```bash
-  $ ls config/deploy
+  vagrant@workshop $ ls config/deploy
 ```
 
 You should see two configs, each corresponding to a different environment.
@@ -386,7 +386,7 @@ To this:
 Now let's check whether our application is ready to deploy to testing.  Run this command:
 
 ```bash
-  $ cap staging deploy:check
+  vagrant@workshop $ cap staging deploy:check
 ```
 
 Whoops, looks like it's prompting for a password.  This is because our ssh key is not on the testing instance for the deploy user.  Let's get that fixed.
@@ -396,7 +396,7 @@ Whoops, looks like it's prompting for a password.  This is because our ssh key i
 Change directories back to your chef cookbook.
 
 ```bash
-  $ cd ~/fresh_start_chef_repo/cookbooks/my_web_server_cookbook/
+  vagrant@workshop $ cd ~/fresh_start_chef_repo/cookbooks/my_web_server_cookbook/
 ```
 
 Normally, we would add the SSH key through a user databag.  For the sake of time, we're going to use a template instead in this workshop.  However, a databag would be a better way to do this in a "real world" environment.  To learn more about databags, see [the Chef documentation on databags](http://docs.chef.io/data_bags.html).
@@ -413,7 +413,7 @@ test/integration/user/serverspec/user_spec.rb
 And run the test:
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And, as expected, it fails.  Now let's make it pass.
@@ -431,11 +431,11 @@ Open up recipes/user.rb and add this content.
 Then converge and run the tests again.
 
 ```bash
-  $ kitchen converge user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge user-ubuntu-14-04-x64
 ```
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And it passes!
@@ -455,7 +455,7 @@ test/integration/user/serverspec/user_spec.rb
 Then, as usual, run the tests.
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And watch them fail.
@@ -465,19 +465,19 @@ Now let's make them pass.  We need a template with the SSH key in it.
 Change directories back to your Chef repo directory
 
 ```bash
-  $ cd ~/my_web_server_chef_repo
+  vagrant@workshop $ cd ~/my_web_server_chef_repo
 ```
 
 And generate the template.
 
 ```bash
-  $ chef generate template cookbooks/my_web_server_cookbook ssh_key
+  vagrant@workshop $ chef generate template cookbooks/my_web_server_cookbook ssh_key
 ```
 
 Now change directories back to your cookbook directory:
 
 ```bash
-  $ cd cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd cookbooks/my_web_server_cookbook
 ```
 
 Then open up the new template and add this content.
@@ -498,11 +498,11 @@ Now add this into your recipes/user.rb file:
 And converge, then re-run the tests.
 
 ```bash
-  $ kitchen converge user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge user-ubuntu-14-04-x64
 ```
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And they should pass!
@@ -510,7 +510,7 @@ And they should pass!
 Now let's apply these changes to our testing node.  Run this command:
 
 ```bash
-  $ knife solo cook root@[testing_node_ip_address]
+  vagrant@workshop $ knife solo cook root@[testing_node_ip_address]
 ```
 
 ## Deploying again
@@ -518,19 +518,19 @@ Now let's apply these changes to our testing node.  Run this command:
 Let's switch back to the widgetworld directory.
 
 ```bash
-  $ cd ~/widgetworld
+  vagrant@workshop $ cd ~/widgetworld
 ```
 
 And try the deploy check again.
 
 ```bash
-  $ cap staging deploy:check
+  vagrant@workshop $ cap staging deploy:check
 ```
 
 If you receive git error, do this:
 
 ```bash
-  $ ssh-add ~/.ssh/id_rsa
+  vagrant@workshop $ ssh-add ~/.ssh/id_rsa
 ```
 
 And it fails again.  Let's take a look at that error:
@@ -553,7 +553,7 @@ Notice that we're now ssh'ing in as the DEPLOY user.
 
 Create and open this file on your VM.
 ```bash
-  $ vim /var/www/widgetworld/shared/config/database.yml
+  deploy@staging $ vim /var/www/widgetworld/shared/config/database.yml
 ```
 
 And add this content:
@@ -657,13 +657,13 @@ Did you notice that the password refers to an environment variable?  This is bec
 Let's set that environment variable now.  On your testing VM, run this command:
 
 ```bash
-   $ export WIDGETWORLD_DATABASE_PASSWORD=[password you used in your chef recipe for the deploy user to login to postgres]
+   vagrant@workshop $ export WIDGETWORLD_DATABASE_PASSWORD=[password you used in your chef recipe for the deploy user to login to postgres]
 ```
 
 Then run the deploy check again.
 
 ```bash
-  $ cap staging deploy:check
+  vagrant@workshop $ cap staging deploy:check
 ```
 
 Whoops, another error, it's not finding a file it expects to be there.
@@ -677,19 +677,19 @@ Let's add that one in.  Just add an empty file for now and we'll come back to th
 SSH into your staging instance:
 
 ```bash
-  $ ssh deploy@[your staging instance ip]
+  vagrant@workshop $ ssh deploy@[your staging instance ip]
 ```
 
 And create this file: (we'll add content shortly)
 
 ```bash
-  $ touch /var/www/widgetworld/shared/config/secrets.yml
+  deploy@staging $ touch /var/www/widgetworld/shared/config/secrets.yml
 ```
 
 Now exit out of your staging instance and, from your development VM, run:
 
 ```bash
-  $ cap staging deploy:check
+  vagrant@workshop $ cap staging deploy:check
 ```
 
 If it does not return an error and exits with a line similar to:
@@ -705,7 +705,7 @@ Then we're ready to deploy for real!
 Deploy with
 
 ```bash
-  $ cap staging deploy
+  vagrant@workshop $ cap staging deploy
 ```
 
 Whoops, another error:
@@ -720,19 +720,19 @@ We need to install bundler on the VM (this is also something that we could captu
 SSH into your staging instance as the deploy user
 
 ```bash
-  $ ssh deploy@[your staging instance ip]
+  vagrant@workshop $ ssh deploy@[your staging instance ip]
 ```
 
 Then run:
 
 ```bash
-  $ sudo gem install bundler
+  deploy@staging $ sudo gem install bundler
 ```
 
 Exit out of your staging instance, and run this command again
 
 ```bash
-  $ cap staging deploy
+  vagrant@workshop $ cap staging deploy
 ```
 
 And it looks like it worked!
@@ -740,19 +740,19 @@ And it looks like it worked!
 The next thing we need to do is create our database.  Capistrano does not currently allow you to do this through the tool, so we're going to do it manually.
 
 ```bash
-  $ ssh deploy@[your staging instance ip]
+  vagrant@workshop $ ssh deploy@[your staging instance ip]
 ```
 
 Then change directories to your current widgetworld deploy:
 
 ```bash
-  $ cd /var/www/widgetworld/current
+  deploy@staging $ cd /var/www/widgetworld/current
 ```
 
 Then create your database.  (We're using a very common Ruby/Rails tool called [Rake](https://github.com/ruby/rake)
 
 ```bash
-  $ RAILS_ENV=staging rake db:create
+  deploy@staging $ RAILS_ENV=staging rake db:create
 ```
 
 If you get no output, that means it was a success!
@@ -762,7 +762,7 @@ Exit out of your staging instance.
 Back on your VM, make sure you're in your widgetworld directory:
 
 ```bash
-  $ cd ~/widgetworld
+  vagrant@workshop $ cd ~/widgetworld
 ```
 
 Now that the database is created, we're going to set up the tables for our database.  Rails does this through [database migrations](http://edgeguides.rubyonrails.org/active_record_migrations.html).  Fortunately, Capistrano can do this for use.
@@ -770,7 +770,7 @@ Now that the database is created, we're going to set up the tables for our datab
 Open up your Capfile
 
 ```bash
-  $ vim Capfile
+  vagrant@workshop $ vim Capfile
 ```
 
 And uncomment this line:
@@ -788,7 +788,7 @@ So it looks like this:
 Now run your deploy again to run these migrations:
 
 ```bash
-  $ cap staging deploy
+  vagrant@workshop $ cap staging deploy
 ```
 
 If you see this output, the migration was successful!
@@ -814,19 +814,19 @@ Rails keeps different config files in the config/environments folders.  There's 
 SSH into your staging instance:
 
 ```bash
-  $ ssh deploy@[your staging instance IP address]
+  vagrant@workshop $ ssh deploy@[your staging instance IP address]
 ```
 
 Then change directories to your widgetworld directory
 
 ```bash
-  $ cd /var/www/widgetworld
+  vagrant@workshop $ cd /var/www/widgetworld
 ```
 
 And run this command, we're going to give our staging instance the same eager_load config as our production instance.
 
 ```bash
-  $ cp /var/www/widgetworld/current/config/environments/production.rb /var/www/widgetworld/current/config/environments/staging.rb
+  vagrant@workshop $ cp /var/www/widgetworld/current/config/environments/production.rb /var/www/widgetworld/current/config/environments/staging.rb
 ```
 
 Now restart Apache to reload the rails application:
@@ -840,7 +840,7 @@ Finally, we need to make Apache aware of our new site.
 Make sure you're back in you Development VM, then change to your cookbook directory.
 
 ```bash
-  $ cd ~/fresh_start_web_server_repo/cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd ~/fresh_start_web_server_repo/cookbooks/my_web_server_cookbook
 ```
 
 First, let's add a test to test/integration/app/serverspec/app.rb
@@ -855,7 +855,7 @@ First, let's add a test to test/integration/app/serverspec/app.rb
 Then run the test to watch it fail.
 
 ```bash
-  $ kitchen verify app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify app-ubuntu-14-04-x64
 ```
 
 Now let's make it pass.
@@ -867,17 +867,17 @@ Now create a new Apache 2 template for use with the app recipe.
 You need to run the generate template command from your my_web_server_chef_repo directory
 
 ```bash
-  $ cd ~/fresh_start_web_server_repo
+  vagrant@workshop $ cd ~/fresh_start_web_server_repo
 ```
 
 ```bash
-  $ chef generate template cookbooks/my_web_server_cookbook app-apache2.conf
+  vagrant@workshop $ chef generate template cookbooks/my_web_server_cookbook app-apache2.conf
 ```
 
 Now change directories back to your cookbook directory:
 
 ```bash
-  $ cd cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd cookbooks/my_web_server_cookbook
 ```
 
 Now open up your new template file and add this content.
@@ -1145,13 +1145,13 @@ recipes/app.rb
 Now converge
 
 ```bash
-  $ kitchen converge app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge app-ubuntu-14-04-x64
 ```
 
 And verify that the tests pass:
 
 ```bash
-  $ kitchen verify app-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify app-ubuntu-14-04-x64
 ```
 
 Huzzah!
@@ -1159,7 +1159,7 @@ Huzzah!
 Make sure to apply these changes to your testing instance.
 
 ```bash
-  $ knife solo cook root@[testing_node_ip_address]
+  vagrant@workshop $ knife solo cook root@[testing_node_ip_address]
 ```
 
 Now let's look at the IP of your staging instance in your favorite browser:
@@ -1192,7 +1192,7 @@ Well...that's not exactly helpful.  Let's do some troubleshooting. SSH into your
 A great place to look for errors when you're running Apache is the Apache logs.  Let's tail this log (meaning we will watch the log be generated in real time).
 
 ```bash
-  $ sudo tail -f /var/log/error.log
+  deploy@staging $ sudo tail -f /var/log/error.log
 ```
 
 And let's reload the page in our browser, then take a look back at the console.
@@ -1263,18 +1263,18 @@ We need to configure that environmental variable.  For the sake of time, we're g
 Change directories into your current widgetworld directory.
 
 ```bash
- $ cd /var/www/widgetworld/current
+  deploy@staging $ cd /var/www/widgetworld/current
 ```
 
 Then run this command to generate your secret key base:
 
 ```bash
-  $ RAILS_ENV=staging rake secret
+  deploy@staging $ RAILS_ENV=staging rake secret
 ```
 
 Now open up the deploy user's bash profile:
 ```bash
-  $ vim ~/.bash_profile
+  deploy@staging $ vim ~/.bash_profile
 ```
 
 And add this content:
@@ -1285,25 +1285,19 @@ And add this content:
 You can then make sure this variable is set correctly by running
 
 ```bash
-  $ echo $SECRET_KEY_BASE
+  deploy@staging $ echo $SECRET_KEY_BASE
 ```
 
 Then source the bash profile:
 
 ```bash
-  $ source ~/.bash_profile
+  deploy@staging $ source ~/.bash_profile
 ```
 
 Now restart Apache to make sure Rails loads this environmental variable:
 
 ```bash
-  $ sudo service apache2 restart
-```
-
-If you're still getting errors, run this command on your staging instance:
-
-```bash
-  $ cp config/environments/production.rb config/environments/staging.rb
+  deploy@staging $ sudo service apache2 restart
 ```
 
 And you should see a page that's ready to list some widgets!
