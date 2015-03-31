@@ -151,10 +151,8 @@ Now save and quit this file.
 
 We haven't applied this recipe to our development environment yet.  Let's verify that apache2 is not installed by typing in this command.
 
-[TO DO: Explain more about dpkg command?]
-
 ```bash
-  $ dpkg -l apache2
+  vagrant@workshop $ dpkg -l apache2
 ```
 
 You should get back the output
@@ -165,10 +163,9 @@ You should get back the output
 
 Now let's apply that chef recipe we just created using the "chef-client" command.
 
-[TO DO: Explain more about Chef client?]
 
 ```bash
-  $ sudo chef-client --local-mode --runlist 'recipe[my_web_server_cookbook]'
+  vagrant@workshop $ sudo chef-client --local-mode --runlist 'recipe[my_web_server_cookbook]'
 ```
 
 Take a look at the output, you should see these lines toward the end:
@@ -187,7 +184,7 @@ And this line at the very end:
 Now run the dkpg command again, checking whether apache2 is installed.
 
 ```bash
-  $ dpkg -l apache2
+  vagrant@workshop $  dpkg -l apache2
 ```
 
 You should receive output similar to this:
@@ -212,7 +209,7 @@ Test Driven Development is the practice of writing automated tests, watching the
 We're going to re-create the apache2 cookbook we made earlier, but this time using Test Driven Development methodology.  Go ahead and delete the cookbook you created earlier with:
 
 ```bash
-  $ rm -rf cookbooks/my_web_server_cookbook
+  vagrant@workshop $ rm -rf cookbooks/my_web_server_cookbook
 ```
 
 ### Verify Test Kitchen
@@ -222,7 +219,7 @@ To Test Drive creating our Apache Chef cookbook, we're going to use a test frame
 Test Kitchen is included in the ChefDK you downloaded earlier.  Verify that it is on your system by running:
 
 ```bash
-  $ kitchen version
+  vagrant@workshop $ kitchen version
 ```
 
 You should see output similar to:
@@ -236,13 +233,13 @@ You should see output similar to:
 Now let's create the cookbook again, ChefDK will include all the Test Kitchen templates that we need.
 
 ```bash
-  $ chef generate cookbook cookbooks/my_web_server_cookbook
+  vagrant@workshop $ chef generate cookbook cookbooks/my_web_server_cookbook
 ```
 
 Open up that metadata.rb file in your my_web_server_cookbook directory.  Use your preferred text editor (here I use vim).
 
 ```bash
-  $ vim cookbooks/my_web_server_cookbook/metadata.rb
+  vagrant@workshop $ vim cookbooks/my_web_server_cookbook/metadata.rb
 ```
 
 You should see content similar to this:
@@ -266,7 +263,7 @@ Test Kitchen specifically uses the name and version attributes.
 Change directories to your apache2 cookbook
 
 ```bash
-  $ cd cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd cookbooks/my_web_server_cookbook
 ```
 
 List all files and directories, including hidden files
@@ -274,7 +271,7 @@ List all files and directories, including hidden files
 [TO DO: Explain -a flag more?)
 
 ```bash
-  $ ls -la
+  vagrant@workshop $ ls -la
 ```
 
 You should see output similar to this.
@@ -299,7 +296,7 @@ Notice that .kitchen.yml file?  This is the configuration file for our test envi
 Go ahead and open this file with your favorite text editor.
 
 ```bash
-  $ vim .kitchen.yml
+  vagrant@workshop $ vim .kitchen.yml
 ```
 
 It should look like this:
@@ -348,8 +345,6 @@ You should see two lines.  If you don't, raise your hand.
 
 Now, open up your .kitchen.yml file and modify it so it looks like this:
 
-[TO DO: Explain more what each item in kitchen.yml file is doing]
-
 ```bash
 ---
 driver:
@@ -377,7 +372,7 @@ Save and close the file.
 Now run the command:
 
 ```bash
-  $ kitchen list
+  vagrant@workshop $ kitchen list
 ```
 
 You should receive output similar to this:
@@ -394,7 +389,7 @@ This means Test Kitchen is now aware there is an environment it needs to run tes
 Let's go ahead and create this instance for Test Kitchen on Digital Ocean:
 
 ```bash
-  $ kitchen create default-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen create default-ubuntu-14-04-x64
 ```
 
 This will take a little bit while Digital Ocean spins up the instance and gets it ssh ready.  you should receive this confirmation message within 6-7 minutes:
@@ -408,7 +403,7 @@ This will take a little bit while Digital Ocean spins up the instance and gets i
 Alright, let's run kitchen list again:
 
 ```bash
-  $ kitchen list
+  vagrant@workshop $ kitchen list
 ```
 
 You should see output similar to this:
@@ -421,12 +416,12 @@ You should see output similar to this:
 The final thing we need to do is install Chef Client on this instance in order to run our tests.  To do that, run:
 
 ```bash
-  $ kitchen converge
+  vagrant@workshop $ kitchen converge
 ```
 
 You'll see lots of output.  When it completes, run kitchen list one last time:
 ```bash
-  $ kitchen list
+  vagrant@workshop $ kitchen list
 ```
 
 Now you'll see this output:
@@ -444,7 +439,7 @@ First, let's make sure that Test Kitchen can run our code.
 Open up recipes/default.rb
 
 ```bash
-  $ vim recipes/default.rb
+  vagrant@workshop $ vim recipes/default.rb
 ```
 
 And add this content.
@@ -458,7 +453,7 @@ Save and close the file.
 Now we'll use Test Kitchen to run this code.  To do this, we use the "kitchen converge" command:
 
 ```bash
-  $ kitchen converge default-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge default-ubuntu-14-04-x64
 ```
 
 At some point in the output, you should see this:
@@ -479,13 +474,13 @@ To do this, we will use something called [ServerSpec].  ServerSpec allows us to 
 Our tests will live in the /test/integration directory of our cookbook.  Go ahead and take a look at the contents of that directory with:
 
 ```bash
-  $ ls test/integration
+  vagrant@workshop $ ls test/integration
 ```
 
 You'll see a directory called "default."  This is where the specs for our default recipe will live.  Go ahead and take a look inside that directory.
 
 ```bash
-  $ ls test/integration/default
+  vagrant@workshop $ ls test/integration/default
 ```
 
 You'll now see a directory called "serverspec."  There are multiple testing languages that can be used with test kitchen and here is where you would provide directories for each language.  We're using serverspec and the serverspec directory is already there, so we're good to go.
@@ -493,13 +488,13 @@ You'll now see a directory called "serverspec."  There are multiple testing lang
 Take a look in the serverspec directory:
 
 ```bash
-  $ ls test/integration/default/serverspec
+  vagrant@workshop $ ls test/integration/default/serverspec
 ```
 
 You'll see two files: default_spec.rb and spec_helper.rb.  Open up default_spec.rb:
 
 ```bash
-  $ vim test/integration/default/serverspec/default_spec.rb
+ vagrant@workshop $ vim test/integration/default/serverspec/default_spec.rb
 ```
 
 And you'll see a placeholder spec that looks like this:
@@ -545,7 +540,7 @@ A key factor of Test Driven Development is to write the test first, then run it 
 Let's run 'kitchen list' to make sure that our instance is converged and ready for testing.
 
 ```bash
-  $ kitchen list
+  vagrant@workshop $ kitchen list
 ```
 
 You should see:
@@ -558,7 +553,7 @@ You should see:
 Now let's run our test.
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 Looks like we got a failure:
@@ -581,7 +576,7 @@ Excellent!  Our test looks for the apache2 package and, when it doesn't find it,
 Open up recipes/default.rb
 
 ```bash
-  $ vim recipes/default.rb
+  vagrant@workshop $ vim recipes/default.rb
 ```
 
 And add this:
@@ -593,7 +588,7 @@ And add this:
 Now, run:
 
 ```bash
-  $ kitchen converge
+  vagrant@workshop $ kitchen converge
 ```
 
 whoops - looks like we got an error.  Rather than running tests, then exiting with a test failure, it has errored out when converging.  Converge installs our Chef recipe on our test instance, only after that does it run the tests.
@@ -633,7 +628,7 @@ Let's scroll up a bit until we find:
 ```
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 We need to run apt-get update on our test instance before it can find and install the apache2 package.
@@ -643,7 +638,7 @@ Let's add that to our default Chef recip.  First, a test.  Let's make sure that 
 Open up your test file
 
 ```bash
-  $ vim test/integration/default/serverspec/default_spec.rb
+  vagrant@workshop $ vim test/integration/default/serverspec/default_spec.rb
 ```
 
 And add in this content:
@@ -657,13 +652,13 @@ And add in this content:
 Save and close the file, then run your tests:
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 And, as expected, we get a failure.  Now let's make it pass.
 
 ```bash
-  $ vim recipes/default.rb
+  vagrant@workshop $ vim recipes/default.rb
 ```
 
 And add this content BEFORE the package 'apache2' call:
@@ -678,13 +673,13 @@ And add this content BEFORE the package 'apache2' call:
 Now converge these changes
 
 ```bash
-  $ kitchen converge
+  vagrant@workshop $ kitchen converge
 ```
 
 And run the tests again
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 Huzzah! It passes!
@@ -695,7 +690,7 @@ Now what if this recipe ran on a server that had Apache2 installed, but did not 
 
 Open up your test file:
 ```bash
-  $ vim test/integration/default/serverspec/default_spec.rb
+  vagrant@workshop $ vim test/integration/default/serverspec/default_spec.rb
 ```
 
 And add this content:
@@ -721,7 +716,7 @@ And add this content:
 Now, run the tests again.
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 And you should see this output:
@@ -742,19 +737,19 @@ Whoa, looks like it passed the first time.  This is because when Ubuntu 14.04 in
 One of the nicest things about Test Kitchen is that you can ssh into a running Test Kitchen instance with this command:
 
 ```bash
-  $ kitchen login
+  vagrant@workshop $ kitchen login
 ```
 
 Go ahead and run this.  It will log you into the instance as root.  When you get into the instance, run this command:
 
 ```bash
-  $ sudo service apache2 stop
+  vagrant@workshop $ sudo service apache2 stop
 ```
 
 Now exit out of the instance and re-run your tests with:
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 Now we get a failure:
@@ -777,7 +772,7 @@ Failures:
 Open up your default recipe:
 
 ```bash
-  $ vim recipes/default.rb
+  vagrant@workshop $ vim recipes/default.rb
 ```
 And add this content:
 
@@ -787,18 +782,16 @@ And add this content:
   end
 ```
 
-[TO DO: Should there be a way to simulate the service not working with test kitchen?]
-
 Now converge these changes:
 
 ```bash
-  $ kitchen converge
+  vagrant@workshop $ kitchen converge
 ```
 
 Then:
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 Now our test passes!
@@ -808,7 +801,7 @@ Let's add another test for another expectation of our Chef recipe.  Anytime Chef
 Open up your test file:
 
 ```bash
-  $ vim test/integration/default/serverspec/default_spec.rb
+  vagrant@workshop $ vim test/integration/default/serverspec/default_spec.rb
 ```
 
 And add this content:
@@ -836,19 +829,19 @@ And add this content:
 Now run the specs with "kitchen verify"
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 And we get a pass.  We can't write code in our recipe until that test fails.  Login to your kitchen instance with:
 
 ```bash
-  $ kitchen login
+  vagrant@workshop $ kitchen login
 ```
 
 Then remove apache2 from the boot start up list by running this command:
 
 ```bash
-  $ sudo update-rc.d -f apache2 disable
+  vagrant@workshop $ sudo update-rc.d -f apache2 disable
 ```
 
 Exit out of your test kitchen instance.
@@ -856,7 +849,7 @@ Exit out of your test kitchen instance.
 Back in your development environment, run your specs again:
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 And this time our test fails as expected.
@@ -879,7 +872,7 @@ And this time our test fails as expected.
 Now let's make it pass.  Open up you default recipe:
 
 ```bash
-  $ vim recipes/default.rb
+  vagrant@workshop $ vim recipes/default.rb
 ```
 
 And add in this content:
@@ -893,13 +886,13 @@ And add in this content:
 Then apply the Chef recipe to your instance with:
 
 ```bash
-  $ kitchen converge
+  vagrant@workshop $ kitchen converge
 ```
 
 And run the tests.
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 And now it passes!
@@ -907,7 +900,7 @@ And now it passes!
 Finally, let's add in a custom home page.  First, a test.  Open up your test file:
 
 ```bash
-  $ vim test/integration/default/serverspec/default_spec.rb
+  vagrant@workshop $ vim test/integration/default/serverspec/default_spec.rb
 ```
 
 And add this content:
@@ -939,7 +932,7 @@ end
 Now run the test:
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 The output is very verbose for this failure, the sum of it is it hasn't found the content it expected to find.
@@ -949,31 +942,31 @@ To place this content in that file with Chef, we need to add a template.  Chef o
 Make sure you're back in the root directory for you Chef repo:
 
 ```bash
-  $ cd ~/my_web_server_chef_repo
+  vagrant@workshop $ cd ~/my_web_server_chef_repo
 ```
 
 Then run:
 
 ```bash
-  $ chef generate template cookbooks/my_web_server_cookbook index.html
+  vagrant@workshop $ chef generate template cookbooks/my_web_server_cookbook index.html
 ```
 
 Then change directories back into your my_web_server_cookbook cookbook
 
 ```bash
-  $ cd cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd cookbooks/my_web_server_cookbook
 ```
 
 When you ran that generate command above, it placed a file in the templates directory of your cookbook.  Take a look at the templates directory:
 
 ```bash
-  $ ls templates/default
+  vagrant@workshop $ ls templates/default
 ```
 
 You should see a file called "index.html.erb"  This is the template for your custom home page.  Go ahead and open it up:
 
 ```bash
-  $ vim templates/default/index.html.erb
+  vagrant@workshop $ vim templates/default/index.html.erb
 ```
 
 And add this content:
@@ -987,7 +980,7 @@ Then save and close the file.
 Now let's reference this template in our default recipe.  Open it with:
 
 ```bash
-  $ vim recipes/default.rb
+  vagrant@workshop $ vim recipes/default.rb
 ```
 
 And add this content:
@@ -1003,13 +996,13 @@ Then save and close the file.
 Now converge:
 
 ```bash
-  $ kitchen converge
+  vagrant@workshop $ kitchen converge
 ```
 
 The run your tests with:
 
 ```bash
-  $ kitchen verify
+  vagrant@workshop $ kitchen verify
 ```
 
 And our test passes!

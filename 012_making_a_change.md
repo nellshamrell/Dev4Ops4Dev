@@ -8,25 +8,25 @@ Let's say that our development team has made these changes in a branch called "a
 Make sure you're in your widgetworld directory:
 
 ```bash
-  $ cd ~/widgetworld
+  vagrant@workshop $ cd ~/widgetworld
 ```
 
 First, STASH the changes you've made for Capistrano like this:
 
 ```bash
-  $ git stash .
+  vagrant@workshop $ git stash .
 ```
 
 Then checkout the add-new-feature branch
 
 ```bash
-  $ git checkout -b add-new-feature origin/add-new-feature
+  vagrant@workshop $ git checkout -b add-new-feature origin/add-new-feature
 ```
 
 Then re-apply the changes you stashed like this:
 
 ```bash
-  $ git stash pop
+  vagrant@workshop $ git stash pop
 ```
 
 First, open up your config/deploy.rb file and uncomment this line:
@@ -46,7 +46,7 @@ Now Capistrano will ask us which branch we want to deploy, rather than auto-depl
 Now let's deploy this branch to staging first.
 
 ```bash
-  $ cap staging deploy
+  vagrant@workshop $ cap staging deploy
 ```
 
 And go to your staging instance's IP address in your browser.
@@ -58,7 +58,7 @@ Now to production
 Run:
 
 ```bash
-  $ cap production deploy
+  vagrant@workshop $ cap production deploy
 ```
 
 And checkout the production IP.

@@ -7,25 +7,25 @@ It's generally not a good idea to give an application root access to your machin
 Let's generate a new recipe like so:
 
 ```bash
-  $ chef generate recipe user
+  vagrant@workshop $ chef generate recipe user
 ```
 
 Now we need to create the directory where our server specs will live:
 
 ```bash
-  $ mkdir -p test/integration/user/serverspec
+  vagrant@workshop $ mkdir -p test/integration/user/serverspec
 ```
 
 And create the test file
 
 ```bash
-  $ touch test/integration/user/serverspec/user_spec.rb
+  vagrant@workshop $ touch test/integration/user/serverspec/user_spec.rb
 ```
 
 And we need to be able to access a spec_helper similar to the one living in test/integration/default/serverspec.  In this case, let's copy that one into our new integration test directory.
 
 ```bash
-  $ cp test/integration/default/serverspec/spec_helper.rb test/integration/user/serverspec
+  vagrant@workshop $ cp test/integration/default/serverspec/spec_helper.rb test/integration/user/serverspec
 ```
 
 ## Creating a deploy user
@@ -66,19 +66,19 @@ suites:
 Then create the test instance.
 
 ```bash
-  $ kitchen create user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen create user-ubuntu-14-04-x64
 ```
 
 And set it up:
 
 ```bash
-  $ kitchen setup user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen setup user-ubuntu-14-04-x64
 ```
 
 Now run these tests:
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And, as expected, we get a failure.
@@ -98,13 +98,13 @@ Add this to your recipes/user.rb file
 Now converge the code
 
 ```bash
-  $ kitchen converge user-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen converge user-ubuntu-14-04-x64
 ```
 
 And run the test again
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+   vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And it passes!
@@ -125,7 +125,7 @@ test/integration/deploy_user/serverspec/deploy_user_spec.rb
 Now run your tests:
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And we get the expected failure.
@@ -162,7 +162,7 @@ test/integration/deploy_user/serverspec/deploy_user_spec.rb
 Now run the tests and watch them fail.
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 Now let's make it pass:
@@ -170,17 +170,17 @@ Now let's make it pass:
 First, we need to create a template for this file, remember you need to run the generate command from your my_web_server_chef_repo directory.
 
 ```bash
-  $ cd ~/my_web_server_chef_repo
+  vagrant@workshop $ cd ~/my_web_server_chef_repo
 ```
 
 ```bash
-  $ chef generate template cookbooks/my_web_server_cookbook deploy
+  vagrant@workshop $ chef generate template cookbooks/my_web_server_cookbook deploy
 ```
 
 Now change directories back to your cookbook directory:
 
 ```bash
-  $ cd cookbooks/my_web_server_cookbook
+  vagrant@workshop $ cd cookbooks/my_web_server_cookbook
 ```
 
 And open up the template file and add this content.
@@ -202,13 +202,13 @@ recipe/user.rb
 Now converge the code:
 
 ```bash
-  $ kitchen converge user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge user-ubuntu-14-04-x64
 ```
 
 And run the tests:
 
 ```bash
-  $ kitchen verify user-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify user-ubuntu-14-04-x64
 ```
 
 And they should pass!

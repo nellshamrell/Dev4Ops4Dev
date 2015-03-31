@@ -42,7 +42,7 @@ divide and conquer.  Individuals with some Rails should train others.
 ## What Happened?
 
 Free-form discussion.  See solutions.md file for everything Clinton
-gleaned. 
+gleaned.
 
 
 ## Enrichment
@@ -68,22 +68,22 @@ that one machine?"
 If the project has Chef / Puppet / Ansible / etc code, dive in and read.
 
 Two rich areas of exploration:
-  
+
 * Instance-specific information, like Chef node runlists or Ansible playbooks.
 * Dependency data, like Berksfiles
 
 #### Examine the running instances
 
-If real instances exist, login and look around.  
+If real instances exist, login and look around.
 
 * What services are running according to init.d?
-* What ports are listening, according to netstat -nlp --inet? 
+* What ports are listening, according to netstat -nlp --inet?
 
 #### Read the applciation config files
 
-Look for service locators / hostnames.  
+Look for service locators / hostnames.
 
-Hey, they mention the RMQ hostname.  
+Hey, they mention the RMQ hostname.
 And having a RO database host and a RW database host.  How are those synced?
 
 #### Read the gemfiles / setup.py / npm.json
@@ -106,7 +106,7 @@ Instead, we're simply looking for evidence of dependency on an
 external service.
 
 
-### Other Ways to Discover Dependencies, That Only Work in Ideal Organizations 
+### Other Ways to Discover Dependencies, That Only Work in Ideal Organizations
 
 #### Be there from the begining
 
@@ -117,7 +117,7 @@ can help advice choices, start to plan for scaling and redundancy, and
 get in front of any anti-patterns that are obvious to Ops but less so
 to Dev.
 
-So, ideally, you'd go back in time, and be at those meetings.  
+So, ideally, you'd go back in time, and be at those meetings.
 
 Failing that, the earlier the deployers and operators can be involved
 in the development process, the better.
