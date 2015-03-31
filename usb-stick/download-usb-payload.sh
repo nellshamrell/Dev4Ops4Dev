@@ -32,18 +32,20 @@ fi
 #                                   Disk Image 
 #===========================================================================================#
 
-echo "Creating Disk Image"
-hdiutil create -megabytes $IMAGE_SIZE -fs MS-DOS -volname Dev4Ops4Dev -o $IMAGE_PATH
-if [[ $? -gt 0 ]]; then
-  echo "ERROR: Unable to create empty image! "
-  exit 1
+if [[ ! -e $IMAGE_PATH ]]; then
+    echo "Creating Disk Image"
+    hdiutil create -megabytes $IMAGE_SIZE -fs MS-DOS -volname Dev4Ops4Dev -o $IMAGE_PATH
+    if [[ $? -gt 0 ]]; then
+        echo "ERROR: Unable to create empty image! "
+        exit 1
+    fi
 fi
 
 echo "Mounting Disk Image (${IMAGE_MNT})"
 hdiutil attach -mountpoint $IMAGE_MNT $IMAGE_PATH
 if [[ $? -gt 0 ]]; then
-  echo "ERROR: Unable to mount image!"
-  exit 1
+    echo "ERROR: Unable to mount image!"
+    exit 1
 fi
 
 cd ${IMAGE_MNT}
