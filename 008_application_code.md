@@ -151,5 +151,64 @@ Run it to verify a red result.
   vagrant@workshop my-cookbook $ git commit -m "TDD RED: send code and look for controller file"
 ```
 
+### TDD Green - Shipping the Code
+
+So, now we're ready to implement!  There are many ways to send code.  We could:
+
+  * Put the code in the chef repo, and sync them as files 
+  * Make a tarball, and make resources to fetch and untar it
+  * Use an artifact server
+  * Use a remote deployment system like Capistrano
+  * If the code is in git, using the 'git' resource might be simplest
+
+It so happens that the code IS in git, because you forked Nell's widgetworld repo.  Let's use the git resource.
+
+Edit recipes/send-code.rb
+
+```ruby
+
+git 'Install widgetworld via git' do
+    action :checkout
+    destination '/var/www'
+    repository 'https://github.com/YOURUSERNAME/widgetworld.git'
+end
+
+```
+
+#### What, no git?
+
+It failed for me, emitting
+
+```bash
+    STDERR: sh: 1: git: not found
+```
+
+Fair enough; if we're going to use git to check something out, we should probably ensure that git is installed.
+
+Since we're installing OS packages, we need to add the apt recipe to the runlist.
+
+Edit .kitchen.yml :
+
+```yaml
+
+  - name: send-code
+    run_list:
+      - recipe[apt]       #    <---  Add this line
+      - recipe[send-code]
+```
+
+Edit recipes/send-app.rb, and add (prior to the git resource)
+
+```ruby
+  package 'git'
+```
+
+Run again, and it should be green.
+
+```bash
+  vagrant@workshop my-cookbook $ kitchen verify send-code-ubuntu-14-04-x64
+  vagrant@workshop my-cookbook $ git add .kitchen.yml recipes/send-code.rb
+  vagrant@workshop my-cookbook $ git commit -m "TDD Green on code deploy using git resource"
+```
 
 
