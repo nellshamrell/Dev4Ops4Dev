@@ -92,8 +92,6 @@ Now, let's commit the code:
  vagrant@workshop $ git add recipes/postgresql.rb test/integration/serverspec/postgresql
 ```
 
-Then commit
-
 ```bash
  vagrant@workshop $ git commit -m 'failing postgresql package test'
 ```
