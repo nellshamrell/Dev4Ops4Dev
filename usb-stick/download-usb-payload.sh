@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/bin/bash 
 
 #===========================================================================================#
 #                                 "UI"
@@ -13,6 +12,11 @@ DO_DOWNLOADS=true
 DO_COURSE=true
 DO_REPORT=true
 
+IMAGE_VERSION="0.1"
+IMAGE_PATH=~/Dev4Ops4Dev-USB-Image-${IMAGE_VERSION}.dmg
+IMAGE_MNT=~/Dev4Ops4Dev-USB
+IMAGE_SIZE=2048
+
 #===========================================================================================#
 #                                  Preflight
 #===========================================================================================#
@@ -23,6 +27,31 @@ if ! gem list -i github-markdown-preview >/dev/null; then
     echo " (may need sudo, rvm, rbenv, advil)"
     exit 1
 fi
+
+#===========================================================================================#
+#                                   Disk Image 
+#===========================================================================================#
+
+if [[ ! -e $IMAGE_PATH ]]; then
+    echo "Creating Disk Image"
+    hdiutil create -megabytes $IMAGE_SIZE -fs MS-DOS -volname Dev4Ops4Dev -o $IMAGE_PATH
+    if [[ $? -gt 0 ]]; then
+        echo "ERROR: Unable to create empty image! "
+        exit 1
+    fi
+fi
+
+echo "Mounting Disk Image (${IMAGE_MNT})"
+hdiutil attach -mountpoint $IMAGE_MNT $IMAGE_PATH
+if [[ $? -gt 0 ]]; then
+    echo "ERROR: Unable to mount image!"
+    exit 1
+fi
+
+cd ${IMAGE_MNT}
+
+echo "Fetching Contents"
+
 
 #===========================================================================================#
 #                                  Downloads
@@ -148,7 +177,6 @@ if $DO_COURSE; then
     cd ..
 fi
 
-
 #===========================================================================================#
 #                                      Disk report
 #===========================================================================================#
@@ -161,6 +189,17 @@ if $DO_REPORT; then
     du -h -s
 fi
 
+echo "Closing up USB Image"
+hdiutil unmount ${IMAGE_MNT}
+
+echo "Done!  Image ${IMAGE_PATH} ready for use!"
+echo ""
+echo "1) Insert a USB Key, find the device number using: diskutil list"
+echo "2) Unmount any volumes on device using: diskutil unmountDisk /dev/diskX"
+echo "3) To create key, simply: dd if=${IMAGE_PATH} of=/dev/rdiskX bs=1m"
+
+
+
 #===========================================================================================#
 #                                DO Creds reminder
 #===========================================================================================#
@@ -171,4 +210,7 @@ fi
 echo "Be sure to also place the digitalocean-creds.txt file"
 echo "token:abababa..."
 echo "key_id:1234"
+
+echo "And the SSH private key!
+
 
