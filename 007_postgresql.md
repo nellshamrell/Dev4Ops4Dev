@@ -201,9 +201,8 @@ First, a test:
 
 test/integration/postgresql/serverspec/postgresql_spec.rb
 ```bash
-execute "grant deploy user create db privileges" do
-  user "postgres"
-  command "psql -c \"ALTER USER deploy CREATEDB;\""
+describe command('sudo -u postgres -s psql postgres -tAc "\du"') do
+  its(:stdout) { should match /Create DB/ }
 end
 ```
 
