@@ -117,6 +117,18 @@ And, as expected, we get a failure.
   # /tmp/busser/suites/serverspec/passenger_spec.rb:4:in `block (3 levels) in <top (required)>'
 ```
 
+And this is a good time to commit, now that we have a reliably failing test.  Add in the recipe and test file to git.
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb test/integration/serverspec/passenger
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'failing passenger gem spec'
+```
+
 Now let's add the code to make this test pass.
 
 Open up the recipe file:
@@ -171,6 +183,16 @@ And run the tests again:
 
 And they pass!
 
+Now let's commit the passing code:
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb
+```
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'passing passenger gem spec'
+```
+
 ## Installing Passenger dependencies
 
 Passenger requires several packages to work with Apache.
@@ -215,6 +237,18 @@ Then save and close the file and run the tests.
 
 And they should fail.
 
+Now add these spec changes to git
+
+```bash
+  vagrant@workshop my-cookbook $ git add test/integration/serverspec/passenger
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'failing passenger packages specs'
+```
+
 Open up your recipe file.
 
 ```bash
@@ -243,6 +277,18 @@ And run the tests:
 
 ```bash
   $ kitchen verify passenger-ubuntu-14-04-x64
+```
+
+Now let's commit the passing code:
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'passing passenger packages specs'
 ```
 
 And they should pass.
@@ -294,6 +340,21 @@ Then run your tests:
 ```bash
   $ kitchen verify passenger-ubuntu-14-04-x64
 ```
+
+And they fail.
+
+Commit this:
+
+```bash
+ vagrant@workshop my-cookbook $ git add test/integration/serverspec/passenger
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'failing passenger swap memory test'
+```
+
 
 Add this to your recipe file:
 
@@ -386,6 +447,16 @@ And run the tests:
 
 And they should pass!
 
+Now let's commit.
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb
+```
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'passing passenger gem spec'
+```
+
 ### Installing the Apache Passenger module
 
 Now it's time to get Passenger up and running with Apache. To do this, we need to install the passenger-install-apache2-module.  First, let's add a test.
@@ -405,6 +476,18 @@ And run the tests:
 ```
 
 And, as expected, it fails.
+
+Let's commit this:
+
+```bash
+ vagrant@workshop my-cookbook $ git add test/integration/serverspec/passenger
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'failing passenger apache module spec'
+```
 
 Now add this to your recipe file:
 
@@ -427,7 +510,19 @@ Now run the tests.
   $ kitchen verify passenger-ubuntu-14-04-x64
 ```
 
-And they should pass!  One final thing, we don't want to install the module if it's already installed, at the very least it's an immense amount of unnecessary time to install.
+And they should pass!
+
+Commit this:
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb
+```
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'passing passenger apache module code'
+```
+
+One final thing, we don't want to install the module if it's already installed, at the very least it's an immense amount of unnecessary time to install.
 
 Add one line to you recipe to prevent running the module install when it has already been run.
 
@@ -437,6 +532,16 @@ Add one line to you recipe to prevent running the module install when it has alr
     action :run
     not_if { ::File.exists?("/var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so")}
   end
+```
+
+Then add and commit this:
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb
+```
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'do not run passenger-install-apache2-module when already installed'
 ```
 
 ## Creating the Apache Config file
@@ -476,6 +581,18 @@ Then, run the tests.
 ```
 
 As expected, it fails.
+
+You guessed it, let's commit.
+
+```bash
+ vagrant@workshop my-cookbook $ git add test/integration/serverspec/passenger
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'failing load module test'
+```
 
 Let's fill in the config file template.
 
@@ -744,3 +861,13 @@ And run your tests
 ```
 
 And they pass!
+
+Now let's commit one more time for passenger!
+
+```bash
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb templates
+```
+
+```bash
+ vagrant@workshop my-cookbook $ git commit -m 'passing passenger load module test'
+```

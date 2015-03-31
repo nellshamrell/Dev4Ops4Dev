@@ -5,25 +5,25 @@ Next, we need a database for our application.  In this workshop we're using Post
 Let's generate a new recipe like so:
 
 ```bash
-  $ chef generate recipe postgresql
+  vagrant@workshop $ chef generate recipe postgresql
 ```
 
 Now we need to create the directory where our server specs will live:
 
 ```bash
-  $ mkdir -p test/integration/postgresql/serverspec
+  vagrant@workshop $ mkdir -p test/integration/postgresql/serverspec
 ```
 
 And create the test file
 
 ```bash
-  $ touch test/integration/postgresql/serverspec/postgresql_spec.rb
+  vagrant@workshop $ touch test/integration/postgresql/serverspec/postgresql_spec.rb
 ```
 
 And we need to be able to access a spec_helper similar to the one living in test/integration/default/serverspec.  In this case, let's copy that one into our new integration test directory.
 
 ```bash
-  $ cp test/integration/default/serverspec/spec_helper.rb test/integration/postgresql/serverspec
+  vagrant@workshop $ cp test/integration/default/serverspec/spec_helper.rb test/integration/postgresql/serverspec
 ```
 
 ## Installing the Postgresql package
@@ -69,22 +69,34 @@ suites:
 Then create the test instance.
 
 ```bash
-  $ kitchen create postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen create postgresql-ubuntu-14-04-x64
 ```
 
 And set it up:
 
 ```bash
-  $ kitchen setup postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen setup postgresql-ubuntu-14-04-x64
 ```
 
 Now run these tests:
 
 ```bash
-  $ kitchen verify postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify postgresql-ubuntu-14-04-x64
 ```
 
 And, as expected, we get failures.
+
+Now, let's commit the code:
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb test/integration/serverspec/postgresql
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'failing postgresql package test'
+```
 
 Now let's make it pass.  Open up recipes/postgresql.rb and add this content:
 
@@ -96,14 +108,26 @@ Now let's make it pass.  Open up recipes/postgresql.rb and add this content:
 Then save the file, converge, and run your tests again.
 
 ```bash
-  $ kitchen converge postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen converge postgresql-ubuntu-14-04-x64
 ```
 
 ```bash
-  $ kitchen verify postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify postgresql-ubuntu-14-04-x64
 ```
 
 And they pass!
+
+You know what to do.
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'passing postgresql package test'
+```
 
 ## Creating the deploy user
 
@@ -121,7 +145,19 @@ test/integration/postgresql/serverspec/postgresql_spec.rb
 Then run the test and watch it fail
 
 ```bash
-  $ kitchen verify postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify postgresql-ubuntu-14-04-x64
+```
+
+And commit:
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git add test/integration/serverspec/passenger
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'failing postgres deploy user test'
 ```
 
 And now let's add the code to make this pass
@@ -133,6 +169,30 @@ recipes/postgresql.rb
     command "psql -c \"create user deploy with password '#{password for node}';\""
     not_if { `sudo -u postgres psql -tAc \"SELECT 1 FROM pg_roles WHERE rolname=\'deploy\'\" | wc -l`.chomp == "1" }
   end
+```
+
+Then converge and verify to make sure the tests pass
+
+```bash
+  vagrant@workshop $ kitchen converge postgresql-ubuntu-14-04-x64
+```
+
+```bash
+  vagrant@workshop $ kitchen verify postgresql-ubuntu-14-04-x64
+```
+
+They should pass!
+
+And commit.
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb
+```
+
+Then commit
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git commit -m '[passing postgres deploy user test'
 ```
 
 ## Granting Create DB access to the deploy user
@@ -152,7 +212,16 @@ end
 Now run it and watch it fail.
 
 ```bash
-  $ kitchen verify postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen verify postgresql-ubuntu-14-04-x64
+```
+
+Then commit it:
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git add test/integration/serverspec/postgresql
+```
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'failing postgresql privileges spec'
 ```
 
 Then add in the code to make it pass.
@@ -164,7 +233,28 @@ recipes/postgresql.rb
   end
 ```
 
+Then converge and verify:
+
+```bash
+  vagrant@workshop $ kitchen converge postgresql-ubuntu-14-04-x64
+```
+
+```bash
+  vagrant@workshop $ kitchen verify postgresql-ubuntu-14-04-x64
+```
+
 And we have a working Postgres database!
+
+Now let's commit this:
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb
+```
+
+```bash
+ vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'passing postgresql privileges test'
+```
+
 
 ## Refactoring
 
@@ -175,12 +265,12 @@ Rather than hard coding the database password in the recipe, let's create an att
 First, create an attributes directory:
 
 ```bash
-  $ mkdir attributes
+  vagrant@workshop $ mkdir attributes
 ```
 
 Then create a file called default.rb
 ```bash
-  $ touch attributes/default.rb
+  vagrant@workshop $ touch attributes/default.rb
 ```
 
 And open up the file and add this content:
@@ -204,6 +294,15 @@ Now let's use this in the postgresql recipe.  Open it up and modify the content 
 Then verify that our tests still pass by running them on a clean test kitchen instance:
 
 ```bash
-  $ kitchen test postgresql-ubuntu-14-04-x64
+  vagrant@workshop $ kitchen test postgresql-ubuntu-14-04-x64
 ```
 
+Now let's commit ONLY the recipe changes, we are NOT going to commit our attributes file.
+
+```bash
+  vagrant@workshop $ git add recipes/postgresql.rb
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'refactored postgresql recipe'
+```
