@@ -2,11 +2,11 @@
 
 So, now we have a working machine from which to do some development and some operations!  What do we need next?
 
-Some code, of course!  
+Some code, of course!
 
 ## Welcome to WidgetWorld!
 
-The app we'll be supporting is called WidgetWorld.  [ TODO - Nell - blurb? ]
+The app we'll be supporting is called WidgetWorld.  Widget World is a generic e-commerce site for selling widgets of all shapes and sizes.  It's at the very beginning of its life, right now all you can do is add new widgets, edit widgets, see all widgets, and delete widgets.
 
 You can look at the code for WidgetWorld on GitHub.
 
@@ -18,7 +18,7 @@ But how are we going to get the code?  The ZIP files seem like it would work fin
 
 ## Why use Version Control?
 
-We could just grab some code using a tarball, and go from there.  In fact, many of us have worked that way.  
+We could just grab some code using a tarball, and go from there.  In fact, many of us have worked that way.
 
 ### Problems without Version Control
 
@@ -28,7 +28,7 @@ Some problems start to crop up:
  * It's hard to have one person work on a special feature while everyone else works on the main thing
  * You can't travel back in time and see what the code was like before - you don't get backups.
 
-Version Control Systems (VCS) address these problems and more.  There have been many over the years - CVS, SVN, Perforce, VSS, and on and on - but today the dominant VCS by far is git.  
+Version Control Systems (VCS) address these problems and more.  There have been many over the years - CVS, SVN, Perforce, VSS, and on and on - but today the dominant VCS by far is git.
 
 ### Why git?
 
@@ -45,8 +45,8 @@ We'll learn just enough git today to do most common tasks, and talk a bit about 
 The most common workflow is something like this:
 
  1. You and Nell both have Github accounts.
- 2. You are using Nell's code, and need to make a change to it that would benefit the world, or at least you.  
- 3. You check the LICENSE and verify it's something you can contribute to. 
+ 2. You are using Nell's code, and need to make a change to it that would benefit the world, or at least you.
+ 3. You check the LICENSE and verify it's something you can contribute to.
  4. You *fork* Nell's repo.  You now have a complete copy of the code in your github account.
  5. You *clone* your own copy of the repo to your computer.  Now you can locally edit the files.
  6. You *branch* the code, naming it "add-myself-to-readme".  This lets you work on the feature, but if it takes longer than you thought, you can switch back to the regular, "master" branch anytime, then continue later.
@@ -60,7 +60,7 @@ Let's try all that!
 
 ### Making an SSH Key
 
-Most git servers authenticate with each other using SSH keys.  So, you'll need an SSH keypair.  
+Most git servers authenticate with each other using SSH keys.  So, you'll need an SSH keypair.
 
 NOTE: if you already have a keypair and a github account, you can skip this; just make sure your ssh-agent is carrying your key when you are inside the Vagrant VM.
 
@@ -82,7 +82,7 @@ ssh-agent is a program that acts as a sort of keyring for you.  You can give it 
 First, let's see if your SSH agent is running.
 
 ```bash
-  vagrant@workshop $ ssh-add -l 
+  vagrant@workshop $ ssh-add -l
 ```
 
 If you see 'Could not establish a connection with your agent', that means it is not running (nearly any other result means it is.)
@@ -102,7 +102,7 @@ If you need to start ssh-agent, run:
 
 Verify that the key was loaded:
 ```bash
-  vagrant@workshop $ ssh-add -l 
+  vagrant@workshop $ ssh-add -l
 ```
 
 ### Configure your Local Git Client
@@ -129,7 +129,7 @@ Check that the values are stored correctly by running:
 
 If you have not already done so, create a [Github account](https://github.com/).  This will give us a place outside of our developer workstation to keep our Chef recipes, etc.
 
-Once you have a github account, you will need to add your *public* SSH key to it.  
+Once you have a github account, you will need to add your *public* SSH key to it.
 
 First, we'll copy the new public key from your workshop VM onto your laptop.
 
@@ -329,7 +329,7 @@ First, let's make sure we have a fresh copy of your team's work.
 
 ```
   vagrant@workshop widgetworld $ git checkout master  # Switch to master branch
-  vagrant@workshop widgetworld $ git pull master      
+  vagrant@workshop widgetworld $ git pull master
 ```
 
 'pull' Downloads and merges any changes from your team to your master branch.
@@ -354,7 +354,7 @@ At this point, you would test, and ensure that your changes work as expected.
 
 This says that the work on the topic branch is largely done, and the code changes should now be pulled into the main line.
 
-This is a big deal; on some development teams, only the team lead, or a test drone, is allowed to merge to master.  
+This is a big deal; on some development teams, only the team lead, or a test drone, is allowed to merge to master.
 
 Be sure to push after you merge!
 

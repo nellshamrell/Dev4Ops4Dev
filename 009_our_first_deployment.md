@@ -1,3 +1,67 @@
+# A Fresh Start
+
+For the sake of the workshop, let's all start with the same cookbook.  This is the end product of the previous lessons.
+
+Make sure you're in your home directory.
+
+```bash
+  $ cd ~
+```
+
+Then generate a new Chef repo
+
+```bash
+  $ chef generate repo fresh_start_web_server_repo
+```
+
+Switch into the cookbooks directory of this repo
+
+```bash
+  $ cd fresh_start_web_server_repo/cookbooks
+```
+
+Then clone this git repository, which contains the completed version of the cookbook from the previous lessons.  Note that we're calling the directory it is cloned into my_web_server_cookbook
+
+```bash
+  $ git clone git@github.com:nellshamrell/dev_4_ops_4_devs_cookbook.git my_web_server_cookbook
+```
+
+Change into that directory:
+
+```bash
+  $ cd my_web_server_cookbook
+```
+
+Now we're going to checkout an already make branch from the remote git repository (the one we just cloned).  Check it out like this
+
+```bash
+  $ git checkout -b without-app-recipe origin/without-app-recipe
+```
+
+And you should see this output:
+
+```bash
+  Switched to a new branch 'without-app-recipe'
+```
+
+The branch is called "without-app-recipe" because we are going to add a recipe called app!  Not just yet, though...
+
+Remember how we made that attributes file and included a default password for postgres?  Let's create that now:
+
+```bash
+  $ mkdir attributes
+```
+
+```bash
+  $ touch atttibutes/default.rb
+```
+
+Now open that file up and add this content:
+
+```bash
+  default['my_web_server_cookbook']['postgres_password'] = [random password you generate]
+```
+
 # Provisioning a Server
 
 We're going to provision our test instance on Digital Ocean using the (knife digital ocean plug)[https://github.com/rmoriz/knife-digital_ocean]
@@ -22,7 +86,7 @@ Then re-run
 
 Next, you need to add the authorization token provided to you by the instructors to your knife config
 
-.chef/knife.rb
+~/.chef/knife.rb
 ```bash
 knife[:digital_ocean_access_token]   = 'token_provided_by_instructors'
 ```
@@ -60,8 +124,9 @@ Test knife-solo setup
   $ knife solo
 ```
 
-Should see something similar to:
+You should see something similar to:
 
+```bash
 FATAL: Cannot find sub command for: 'solo'
 Available solo subcommands: (for details, knife SUB-COMMAND --help)
 
@@ -95,20 +160,24 @@ Now open up the json file and the add this content to run each of the recipes in
   {
     "run_list": [
       "recipe[my_web_server_cookbook::default]",
-      "recipe[my_web_server_cookbook::passenger]",
       "recipe[my_web_server_cookbook::ruby]",
+      "recipe[my_web_server_cookbook::swap_memory]",
+      "recipe[my_web_server_cookbook::passenger]",
       "recipe[my_web_server_cookbook::postgresql]",
       "recipe[my_web_server_cookbook::user]"
-      ],
+      ]
   }
 ```
 
 ## Bootstrapping your node
 
 Now bootstrap your node with chef:
+
 ```bash
   $ knife solo bootstrap root@#{IP ADDRESS FOR NODE}
 ```
+
+Wait for this to complete (it will take a little bit).
 
 And check out that IP address in your browser.  You should see your custom apache page!
 
