@@ -108,7 +108,7 @@ include_recipe('send-the-code')
   send-the-code recipe"
 ```
 
-### TDD RED - What do we expect?
+### TDD RED - Looking for the Code
 
 Now let's add a Kitchen scenario for just testing placement of the
 code.  This should be familiar by now, so we'll go through it
@@ -131,6 +131,24 @@ describe 'my_web_server_cookbook::send-code' do
     it { should be_a_file }
   end
 end
+```
+
+And edit .kitchen.yml to add a test suite:
+
+```yaml
+
+  - name: send-code
+    run_list:
+      - recipe[send-code]
+```
+
+Run it to verify a red result.
+
+```bash
+  vagrant@workshop my-cookbook $ kitchen verify send-code-ubuntu-14-04-x64
+  # should be RED
+  vagrant@workshop my-cookbook $ git add .kitchen.yml test/integration/send-code/serverspec/send-code_spec.rb
+  vagrant@workshop my-cookbook $ git commit -m "TDD RED: send code and look for controller file"
 ```
 
 
