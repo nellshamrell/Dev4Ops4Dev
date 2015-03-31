@@ -2,7 +2,7 @@ We're going to use an automated deployment tool called [Capistrano](http://capis
 
 # Setting up the Rails application
 ```bash
-  $ cd widgetworld
+  $ cd ~/widgetworld
 ```
 
 Open up the Gemfile
@@ -84,21 +84,19 @@ Uncomment these lines
 ```bash
   # require 'capistrano/rvm'
   # require 'capistrano/bundler'
-  # require 'capistrano/rails/migrations'
 ```
 
 So it looks like this
 
 ```bash
-  # require 'capistrano/rvm'
-  # require 'capistrano/bundler'
-  # require 'capistrano/rails/migrations'
+  require 'capistrano/rvm'
+  require 'capistrano/bundler'
 ```
 
  Next, open up the config/deploy.rb file with your favorite text editor
 
  ```bash
-  $ vi config/deploy.rb
+  $ vim config/deploy.rb
  ```
 
  Change these to lines
@@ -168,7 +166,7 @@ We need to change the owner of this directory to deploy
 First, change directories back to your cookbook.
 
 ```bash
-  $ cd ~/my_web_server_chef_repo/cookbooks/my_web_server_cookbook
+  $ cd ~/fresh_start_web_server_repo/cookbooks/my_web_server_cookbook
 ```
 
 Let's create a new recipe, this one specifically for the app.
@@ -197,6 +195,7 @@ And we need to be able to access a spec_helper similar to the one living in test
 
 Now let's create some tests, checking that the /var/www directory is owned by deploy and grouped in the deploy group.
 
+# Setting ownership of the www directory
 
 test/integration/app/serverspec/app_spec.rb
 ```bash
@@ -311,6 +310,24 @@ Now we need to add this to our node's run list.  Open up nodes/[node's ip addres
   }
 ```
 
+Now, to avoid installing passenger, etc. again, modify your run list so it looks like this:
+
+```bash
+  {
+    "run_list": [
+      "recipe[my_web_server_cookbook::app]"
+    ]
+  }
+```
+
+This way it will only apply changes from our app recipe and avoid a lengthy reconverge.
+
+Now, apply this to your staging node with:
+
+```bash
+  $ knife solo cook root@[your staging instance ip]
+```
+
 ## Setting Capistrano roles
 
 Now change back to your widgetworld directory
@@ -379,7 +396,7 @@ Whoops, looks like it's prompting for a password.  This is because our ssh key i
 Change directories back to your chef cookbook.
 
 ```bash
-  $ cd ~/my_web_server_chef_repo/cookbooks/my_web_server_cookbook/
+  $ cd ~/fresh_start_chef_repo/cookbooks/my_web_server_cookbook/
 ```
 
 Normally, we would add the SSH key through a user databag.  For the sake of time, we're going to use a template instead in this workshop.  However, a databag would be a better way to do this in a "real world" environment.  To learn more about databags, see [the Chef documentation on databags](http://docs.chef.io/data_bags.html).
@@ -510,19 +527,13 @@ And try the deploy check again.
   $ cap staging deploy:check
 ```
 
-If receive git error, do this:
+If you receive git error, do this:
 
 ```bash
   $ ssh-add ~/.ssh/id_rsa
 ```
 
-Then run the deploy check again.
-
-```bash
-  $ cap staging deploy:check
-```
-
-And it fails for hopefully the last time.
+And it fails again.  Let's take a look at that error:
 
 ```bash
   ERROR linked file /var/www/widgetworld/shared/config/database.yml does not exist
@@ -534,8 +545,10 @@ Capistrano expects to find a file that isn't there.  Let's get this taken care o
 
 SSH into your test instance.
 
+Notice that we're now ssh'ing in as the DEPLOY user.
+
 ```bash
-  ssh deploy@192.241.201.66
+  ssh deploy@[your staging instance]
 ```
 
 Create and open this file on your VM.
@@ -626,13 +639,18 @@ test:
 #     url: <%= ENV['DATABASE_URL'] %>
 #
 
-<<: *default
+staging:
+  <<: *default
+  database: widgetworld_staging
+  username: deploy
+  password: <%= ENV['WIDGETWORLD_DATABASE_PASSWORD'] %>
+
+production:
+  <<: *default
   database: widgetworld_production
   username: deploy
   password: <%= ENV['WIDGETWORLD_DATABASE_PASSWORD'] %>
 ```
-
-Then save and close the file.
 
 Did you notice that the password refers to an environment variable?  This is because passwords can be dangerous to keep in source code.  Now we need to set that environment variable.
 
@@ -642,23 +660,33 @@ Let's set that environment variable now.  On your testing VM, run this command:
    $ export WIDGETWORLD_DATABASE_PASSWORD=[password you used in your chef recipe for the deploy user to login to postgres]
 ```
 
-[TO DO: Set this in node configuration in Chef recipe?]
+Then run the deploy check again.
 
-Now let's just create a file at /var/www/widgetworld/shared/secrets.yml.  We'll explain more about this and add content to it in a little bit.
+```bash
+  $ cap staging deploy:check
+```
+
+Whoops, another error, it's not finding a file it expects to be there.
+
+```bash
+  ERROR linked file /var/www/widgetworld/shared/config/secrets.yml does not exist on 45.55.153.64
+```
+
+Let's add that one in.  Just add an empty file for now and we'll come back to this later.
+
+SSH into your staging instance:
+
+```bash
+  $ ssh deploy@[your staging instance ip]
+```
+
+And create this file: (we'll add content shortly)
 
 ```bash
   $ touch /var/www/widgetworld/shared/config/secrets.yml
 ```
 
-Now go ahead and exit out of your VM.
-
-Back on your development box, make sure you're in the widgetworld directory.
-
-```bash
-  $ cd ~/widgetworld
-```
-
-Then run the deploy check one more time.
+Now exit out of your staging instance and, from your development VM, run:
 
 ```bash
   $ cap staging deploy:check
@@ -677,117 +705,133 @@ Then we're ready to deploy for real!
 Deploy with
 
 ```bash
- $ cap staging deploy
+  $ cap staging deploy
 ```
 
-Then ssh back into your VM (this time as the DEPLOY user, not root)
+Whoops, another error:
 
 ```bash
-  ssh deploy@[your test instance's IP address]
+  DEBUG [c880919a] Command: cd /var/www/widgetworld/releases/20150330230130 && /usr/local/rvm/bin/rvm default do bundle install --path /var/www/widgetworld/shared/bundle --without development test --deployment --quiet
+  DEBUG [c880919a]        /usr/local/rvm/scripts/set: line 19: exec: bundle: not found
 ```
 
-Install bundler
+We need to install bundler on the VM (this is also something that we could capture in a Chef recipe)
+
+SSH into your staging instance as the deploy user
 
 ```bash
-$ sudo gem install bundler
+  $ ssh deploy@[your staging instance ip]
 ```
 
-Change to your application directory.
+Then run:
 
 ```bash
-$ cd /var/www/widgetworld/current
+  $ sudo gem install bundler
 ```
 
-And run bundler in this directory.
+Exit out of your staging instance, and run this command again
 
 ```bash
-  $ bundle
+  $ cap staging deploy
 ```
 
-## Configuring Secrets file
+And it looks like it worked!
 
-[TO DO: Set this in node configuration in Chef recipe?]
-
-There's one more file we need to configure.  Rails 4 introduced the concept of a secrets file.  For more info, check out (this blog post)[http://richonrails.com/articles/the-rails-4-1-secrets-yml-file].
-
-Open up this file with your editor of choice.
+The next thing we need to do is create our database.  Capistrano does not currently allow you to do this through the tool, so we're going to do it manually.
 
 ```bash
-  $ vim /var/www/widgetworld/shared/config/secrets.yml
+  $ ssh deploy@[your staging instance ip]
 ```
 
-And add this content.
+Then change directories to your current widgetworld deploy:
 
 ```bash
-  # Be sure to restart your server when you modify this file.
-
-  # Your secret key is used for verifying the integrity of signed cookies.
-  # If you change this key, all old signed cookies will become invalid!
-
-  # Make sure the secret is at least 30 characters and all random,
-  # no regular words or you'll be exposed to dictionary attacks.
-  # You can use `rake secret` to generate a secure secret key.
-
-  # Make sure the secrets in this file are kept private
-  # if you're sharing your code publicly.
-
-  development:
-    secret_key_base: 7ddf23906edc95aed228a016bf57ceda80901d9b0a8d58a5798a54fa5aa4e8509425ff7df5d63f65a393cc27f1ebd4820ff18d5c9d3d753d38037bb9287d9037
-
-  test:
-    secret_key_base: 5c565a66bd249c306d5b399086b238fe506fba9a7dc1779459fcc2239fd784b8fa156f64fbb3a0b7ed82bc4fb302bd6fc7dec79976ffc5c9abde95bd21c5a3ba
-
-  # Do not keep production secrets in the repository,
-  # instead read values from the environment.
-    production:
-      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+  $ cd /var/www/widgetworld/current
 ```
 
-Save and close the file.
-
-Notice another environment variable?  <%= ENV["SECRET_KEY_BASE"] %>
-
-We need to set this, but first we need to generate a sequence to use as our secret key base. Do this by running this command:
+Then create your database.  (We're using a very common Ruby/Rails tool called [Rake](https://github.com/ruby/rake)
 
 ```bash
-  $ RAILS_ENV=staging rake secret
+  $ RAILS_ENV=staging rake db:create
 ```
 
-This will output a code to use as our secret key base.
+If you get no output, that means it was a success!
 
-Now let's create the environmental variable to store this key. Open up your bash profile in an editor:
+Exit out of your staging instance.
 
-[TO DO: Do this through Chef?]
+Back on your VM, make sure you're in your widgetworld directory:
 
 ```bash
-  $ vim ~/.bash_profile
+  $ cd ~/widgetworld
 ```
 
-And add this line to the end of the file
+Now that the database is created, we're going to set up the tables for our database.  Rails does this through [database migrations](http://edgeguides.rubyonrails.org/active_record_migrations.html).  Fortunately, Capistrano can do this for use.
+
+Open up your Capfile
 
 ```bash
-  export SECRET_KEY_BASE=[code you just generated]
+  $ vim Capfile
 ```
-Save and close the file, then reload your bash profile
+
+And uncomment this line:
 
 ```bash
-  $ source ~/.bash_profile
+ # require 'capistrano/rails/migrations'
 ```
 
-You can then make sure this variable is set correctly by running
+So it looks like this:
 
 ```bash
-  $ echo $SECRET_KEY_BASE
+  require 'capistrano/rails/migrations'
 ```
 
-## Setting up the databases
-  Next, create the database for your Rails application and run migrations with these commands
+Now run your deploy again to run these migrations:
+
 ```bash
-  $ RAILS_ENV=production rake db:create
-  $ RAILS_ENV=production rake db:migrate
+  $ cap staging deploy
 ```
 
-Then go ahead and exit out of your VM.
+If you see this output, the migration was successful!
+```bash
+  DEBUG [48ce67f9]        == 20141223043443 CreateWidgets: migrating ====================================
+  DEBUG [48ce67f9]        -- create_table(:widgets)
+  DEBUG [48ce67f9]           -> 0.0042s
+  DEBUG [48ce67f9]        == 20141223043443 CreateWidgets: migrated (0.0043s) ===========================
+```
+
+Now it did work...but we received this warning.
+
+```bash
+  DEBUG [48ce67f9]        config.eager_load is set to nil. Please update your config/environments/*.rb files accordingly:
+  DEBUG [48ce67f9]
+  DEBUG [48ce67f9]          * development - set it to false
+  DEBUG [48ce67f9]          * test - set it to false (unless you use a tool that preloads your test environment)
+  DEBUG [48ce67f9]          * production - set it to true
+```
+
+Rails keeps different config files in the config/environments folders.  There's not one for staging by default.  Let's fix this:
+
+SSH into your staging instance:
+
+```bash
+  $ ssh deploy@[your staging instance IP address]
+```
+
+Then change directories to your widgetworld directory
+
+```bash
+  $ cd /var/www/widgetworld
+```
+
+And run this command, we're going to give our staging instance the same eager_load config as our production instance.
+
+```bash
+  $ cp /var/www/widgetworld/current/config/environments/production.rb /var/www/widgetworld/current/config/environments/staging.rb
+```
+
+Now restart Apache to reload the rails application:
+
+Now let's take a look at that IP address in your browser, will we see our newly running widgetworld application?  Not quite...we still see our custom Apache homepage.
 
 ## Making Apache aware of our site
 
@@ -796,7 +840,7 @@ Finally, we need to make Apache aware of our new site.
 Make sure you're back in you Development VM, then change to your cookbook directory.
 
 ```bash
-  $ cd ~/my_web_server_chef_repo/cookbooks/my_web_server_cookbook
+  $ cd ~/fresh_start_web_server_repo/cookbooks/my_web_server_cookbook
 ```
 
 First, let's add a test to test/integration/app/serverspec/app.rb
@@ -823,7 +867,7 @@ Now create a new Apache 2 template for use with the app recipe.
 You need to run the generate template command from your my_web_server_chef_repo directory
 
 ```bash
-  $ cd ~/my_web_server_chef_repo
+  $ cd ~/fresh_start_web_server_repo
 ```
 
 ```bash
@@ -1069,14 +1113,14 @@ IncludeOptional conf-enabled/*.conf
 # Include the virtual host configurations:
 IncludeOptional sites-enabled/*.conf
 
-LoadModule passenger_module /var/lib/gems/1.9.1/gems/passenger-5.0.4/buildout/apache2/mod_passenger.so
+LoadModule passenger_module /var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so
 <IfModule mod_passenger.c>
-  PassengerRoot /var/lib/gems/1.9.1/gems/passenger-5.0.4
+  PassengerRoot /var/lib/gems/1.9.1/gems/passenger-5.0.5
   PassengerDefaultRuby /usr/bin/ruby1.9.1
 </IfModule>
 
 <VirtualHost *:80>
-ServerName #{Your testing server IP}
+ServerName [Your staging server IP]
 DocumentRoot /var/www/widgetworld/current/public
 <Directory /var/www/widgetworld/current/public>
 # This relaxes Apache security settings.
@@ -1098,7 +1142,19 @@ recipes/app.rb
   end
 ```
 
-And save and close the file.
+Now converge
+
+```bash
+  $ kitchen converge app-ubuntu-14-04-x64
+```
+
+And verify that the tests pass:
+
+```bash
+  $ kitchen verify app-ubuntu-14-04-x64
+```
+
+Huzzah!
 
 Make sure to apply these changes to your testing instance.
 
@@ -1106,62 +1162,11 @@ Make sure to apply these changes to your testing instance.
   $ knife solo cook root@[testing_node_ip_address]
 ```
 
-Now let's try our deploy one more time.
+Now let's look at the IP of your staging instance in your favorite browser:
 
-Make sure you're in your widgetworld directory
+What a minute...we still see that custom page.  What gives?
 
-```bash
-  $ cap staging deploy
-```
-
-Once that completes, check out your IP address in a browser.
-
-Wait a minute....we're still seeing our custom home page, not a rails application.  What gives?
-
-Let's do a bit of troubleshooting.
-
-Go ahead and ssh into your testing instance.
-
-```bash
-  $ ssh deploy@[IP address for your testing instance]
-```
-
-And let's take a look at the passenger processes:
-
-```bash
-  $ passenger-memory-stats
-```
-
-Looks like no passenger process are being run, so our rails application is not being rendered
-
-```bash
-  --- Passenger processes ---
-
-  ### Processes: 0
-  ### Total private dirty RSS: 0.00 MB
-```
-
-There are three passenger processes that must be running in order for our Rails application to work - PassengerAgent watchdog, PassengerAgent server, PassengerAgent logger
-
-Let's write a test for this, open up test/integration/app/serverspec/app_spec.rb
-
-Then add this content:
-
-```bash
- describe command('passenger-memory-stats') do
-   its(:stdout) { should match /PassengerAgent watchdog/ }
-   its(:stdout) { should match /PassengerAgent server/ }
-   its(:stdout) { should match /PassengerAgent logger/ }
- end
-```
-
-And run the test and watch it fail.
-
-```bash
-  $ kitchen verify app-ubuntu-14-04-x64
-```
-
-Now let's add in the code to make it pass
+Turns out, anytime we add a new site to our Apache config, we need to restart the web server.  Let's do that now, adding it to our app recipe.
 
 recipes/app.rb
 ```bash
@@ -1170,333 +1175,136 @@ recipes/app.rb
   end
 ```
 
-Then converge and run the tests:
+Now refresh the page in your browser:
+
+Another error???  At least it's a different one, this time.
 
 ```bash
-  $ kitchen converge app-ubuntu-14-04-x64
+  Incomplete response received from application
 ```
+
+Well...that's not exactly helpful.  Let's do some troubleshooting. SSH into your staging VM:
 
 ```bash
-  $ kitchen verify app-ubuntu-14-04-x64
+  ssh deploy@[your staging instance IP address]
 ```
 
-And looks like there's an error:
+A great place to look for errors when you're running Apache is the Apache logs.  Let's tail this log (meaning we will watch the log be generated in real time).
 
 ```bash
-  Mixlib::ShellOut::ShellCommandFailed
-  ------------------------------------
-  Expected process to exit with [0], but received '1'
-  ---- Begin output of /etc/init.d/apache2 start ----
-  STDOUT: * Starting web server apache2
-  *
-  * The apache2 configtest failed.
-  STDERR: Output of config test was:
-  apache2: Syntax error on line 193 of /etc/apache2/apache2.conf: Cannot load /var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so into server: /var/lib/gems/1.9.1/gems/passenger-5.0.5/buildout/apache2/mod_passenger.so: cannot open shared object file: No such file or directory
-  Action 'configtest' failed.
-  The Apache error log may have more information.
-  ---- End output of /etc/init.d/apache2 start ----
-  Ran /etc/init.d/apache2 start returned 1
-
-  Resource Declaration:
-  ---------------------
-  # In /root/chef-solo/cookbooks-3/my_web_server_cookbook/recipes/default.rb
-
-  14: service 'apache2' do
-  15:   action [:start, :enable]
-  16: end
-  17:
-
-  Compiled Resource:
-  ------------------
-  # Declared in /root/chef-solo/cookbooks-3/my_web_server_cookbook/recipes/default.rb:14:in `from_file'
-
-  service("apache2") do
-  action [:start, :enable]
-  supports {:restart=>false, :reload=>false, :status=>false}
-  retries 0
-  retry_delay 2
-  default_guard_interpreter :default
-  service_name "apache2"
-  pattern "apache2"
-  declared_type :service
-  cookbook_name :my_web_server_cookbook
-  recipe_name "default"
-  end
+  $ sudo tail -f /var/log/error.log
 ```
 
-This is happening because we already ran our Chef cookbooks, but it is trying to run our earliest cookbook (the default cookbook) and is running into problems because of our later cookbooks.  To make sure we can re-run our cookbook when we make changes, let's fix this.
+And let's reload the page in our browser, then take a look back at the console.
 
-Let's create a new Apache config template for our default recipe to use so we don't run into this conflict.
-
-You need to run the generate template command from your my_web_server_chef_repo directory
+Aha!  There's the culprit!
 
 ```bash
-  $ cd ~/my_web_server_chef_repo
+  App 30307 stderr: [ 2015-03-30 16:47:25.7163 30388/0x000000020823a0(Worker 1) utils.rb:85 ]: *** Exception RuntimeError in Rack application object (Missing `secret_key_base` for 'production' environment, set this value in `config/secrets.yml`) (process 30388, thread 0x000000020823a0(Worker 1)):
 ```
+
+Remember that secrets.yml file we created?  Now we we need to actually populate it with something.
+
+## Configuring the secrets environmental variable
+
+There's one more environmental variable we need to configure.  Rails 4 introduced the concept of a secrets file.  For more info, check out [this blog post](http://richonrails.com/articles/the-rails-4-1-secrets-yml-file).
+
+Still on your staging instance, open up the /var/www/widgetworld/shared/config/secrets.yml file and add this content:
+
+/var/www/widgetworld/shared/config/secrets.yml
+```bash
+  # Be sure to restart your server when you modify this file.
+
+  # Your secret key is used for verifying the integrity of signed cookies.
+  # If you change this key, all old signed cookies will become invalid!
+
+  # Make sure the secret is at least 30 characters and all random,
+  # no regular words or you'll be exposed to dictionary attacks.
+  # You can use `rake secret` to generate a secure secret key.
+
+  # Make sure the secrets in this file are kept private
+  # if you're sharing your code publicly.
+
+  development:
+    secret_key_base: 7ddf23906edc95aed228a016bf57ceda80901d9b0a8d58a5798a54fa5aa4e8509425ff7df5d63f65a393cc27f1ebd4820ff18d5c9d3d753d38037bb9287d9037
+
+  test:
+    secret_key_base: 5c565a66bd249c306d5b399086b238fe506fba9a7dc1779459fcc2239fd784b8fa156f64fbb3a0b7ed82bc4fb302bd6fc7dec79976ffc5c9abde95bd21c5a3ba
+
+  # Do not keep production secrets in the repository,
+  # instead read values from the environment.
+    production:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+```
+
+See this content at the bottom?
 
 ```bash
-  $ chef generate template cookbooks/my_web_server_cookbook apache2.conf
+  # Do not keep production secrets in the repository,
+  # instead read values from the environment.
+    production:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 ```
 
-Now change directories back to your cookbook directory:
+We need to add another couple of lines to this file to use it in a staging environment.  Alter the last part of the file so it looks like this:
 
 ```bash
-  $ cd cookbooks/my_web_server_cookbook
+  # Do not keep production secrets in the repository,
+  # instead read values from the environment.
+    production:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+    staging:
+      secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
 ```
 
-And add this content (just a plain, vanilla apache config file that the default recipe will use).
+
+We need to configure that environmental variable.  For the sake of time, we're going to do this one manually, though it would be ideal to incorporate this into our Chef recipe.
+
+Change directories into your current widgetworld directory.
 
 ```bash
-# This is the main Apache server configuration file.  It contains the
-# configuration directives that give the server its instructions.
-# See http://httpd.apache.org/docs/2.4/ for detailed information about
-# the directives and /usr/share/doc/apache2/README.Debian about Debian specific
-# hints.
-#
-#
-# Summary of how the Apache 2 configuration works in Debian:
-# The Apache 2 web server configuration in Debian is quite different to
-# upstream's suggested way to configure the web server. This is because Debian's
-# default Apache2 installation attempts to make adding and removing modules,
-# virtual hosts, and extra configuration directives as flexible as possible, in
-# order to make automating the changes and administering the server as easy as
-# possible.
-
-# It is split into several files forming the configuration hierarchy outlined
-# below, all located in the /etc/apache2/ directory:
-#
-#       /etc/apache2/
-#       |-- apache2.conf
-#       |       `--  ports.conf
-#       |-- mods-enabled
-#       |       |-- *.load
-#       |       `-- *.conf
-#       |-- conf-enabled
-#       |       `-- *.conf
-#       `-- sites-enabled
-#               `-- *.conf
-#
-#
-# * apache2.conf is the main configuration file (this file). It puts the pieces
-#   together by including all remaining configuration files when starting up the
-#   web server.
-#
-# * ports.conf is always included from the main configuration file. It is
-#   supposed to determine listening ports for incoming connections which can be
-#   customized anytime.
-#
-# * Configuration files in the mods-enabled/, conf-enabled/ and sites-enabled/
-#   directories contain particular configuration snippets which manage modules,
-#   global configuration fragments, or virtual host configurations,
-#   respectively.
-#
-#   They are activated by symlinking available configuration files from their
-#   respective *-available/ counterparts. These should be managed by using our
-#   helpers a2enmod/a2dismod, a2ensite/a2dissite and a2enconf/a2disconf. See
-#   their respective man pages for detailed information.
-#
-# * The binary is called apache2. Due to the use of environment variables, in
-#   the default configuration, apache2 needs to be started/stopped with
-#   /etc/init.d/apache2 or apache2ctl. Calling /usr/bin/apache2 directly will not
-#   work with the default configuration.
-
-
-# Global configuration
-#
-
-#
-# ServerRoot: The top of the directory tree under which the server's
-# configuration, error, and log files are kept.
-#
-# NOTE!  If you intend to place this on an NFS (or otherwise network)
-# mounted filesystem then please read the Mutex documentation (available
-# at <URL:http://httpd.apache.org/docs/2.4/mod/core.html#mutex>);
-# you will save yourself a lot of trouble.
-#
-# Do NOT add a slash at the end of the directory path.
-#
-#ServerRoot "/etc/apache2"
-
-#
-# The accept serialization lock file MUST BE STORED ON A LOCAL DISK.
-#
-Mutex file:${APACHE_LOCK_DIR} default
-
-#
-# PidFile: The file in which the server should record its process
-# identification number when it starts.
-# This needs to be set in /etc/apache2/envvars
-#
-PidFile ${APACHE_PID_FILE}
-
-#
-# Timeout: The number of seconds before receives and sends time out.
-#
-Timeout 300
-
-#
-# KeepAlive: Whether or not to allow persistent connections (more than
-# one request per connection). Set to "Off" to deactivate.
-#
-KeepAlive On
-
-#
-# MaxKeepAliveRequests: The maximum number of requests to allow
-# during a persistent connection. Set to 0 to allow an unlimited amount.
-# We recommend you leave this number high, for maximum performance.
-#
-MaxKeepAliveRequests 100
-
-#
-# KeepAliveTimeout: Number of seconds to wait for the next request from the
-# same client on the same connection.
-#
-KeepAliveTimeout 5
-
-
-# These need to be set in /etc/apache2/envvars
-User ${APACHE_RUN_USER}
-Group ${APACHE_RUN_GROUP}
-
-#
-# HostnameLookups: Log the names of clients or just their IP addresses
-# e.g., www.apache.org (on) or 204.62.129.132 (off).
-# The default is off because it'd be overall better for the net if people
-# had to knowingly turn this feature on, since enabling it means that
-# each client request will result in AT LEAST one lookup request to the
-# nameserver.
-#
-HostnameLookups Off
-
-# ErrorLog: The location of the error log file.
-# If you do not specify an ErrorLog directive within a <VirtualHost>
-# container, error messages relating to that virtual host will be
-# logged here.  If you *do* define an error logfile for a <VirtualHost>
-# container, that host's errors will be logged there and not here.
-#
-ErrorLog ${APACHE_LOG_DIR}/error.log
-
-#
-# LogLevel: Control the severity of messages logged to the error_log.
-# Available values: trace8, ..., trace1, debug, info, notice, warn,
-# error, crit, alert, emerg.
-# It is also possible to configure the log level for particular modules, e.g.
-# "LogLevel info ssl:warn"
-#
-LogLevel warn
-
-# Include module configuration:
-IncludeOptional mods-enabled/*.load
-IncludeOptional mods-enabled/*.conf
-
-# Include list of ports to listen on
-Include ports.conf
-
-
-# Sets the default security model of the Apache2 HTTPD server. It does
-# not allow access to the root filesystem outside of /usr/share and /var/www.
-# The former is used by web applications packaged in Debian,
-# the latter may be used for local directories served by the web server. If
-# your system is serving content from a sub-directory in /srv you must allow
-# access here, or in any related virtual host.
-<Directory />
-        Options FollowSymLinks
-        AllowOverride None
-        Require all denied
-</Directory>
-
-<Directory /usr/share>
-        AllowOverride None
-        Require all granted
-</Directory>
-
-<Directory /var/www/>
-        Options Indexes FollowSymLinks
-        AllowOverride None
-        Require all granted
-</Directory>
-
-#<Directory /srv/>
-#       Options Indexes FollowSymLinks
-#       AllowOverride None
-#       Require all granted
-#</Directory>
-
-
-
-
-# AccessFileName: The name of the file to look for in each directory
-# for additional configuration directives.  See also the AllowOverride
-# directive.
-#
-
-
-
-
-# AccessFileName: The name of the file to look for in each directory
-# for additional configuration directives.  See also the AllowOverride
-# directive.
-#
-AccessFileName .htaccess
-
-#
-# The following lines prevent .htaccess and .htpasswd files from being
-# viewed by Web clients.
-#
-<FilesMatch "^\.ht">
-        Require all denied
-</FilesMatch>
-
-
-#
-# The following directives define some format nicknames for use with
-# a CustomLog directive.
-#
-# These deviate from the Common Log Format definitions in that they use %O
-# (the actual bytes sent including headers) instead of %b (the size of the
-# requested file), because the latter makes it impossible to detect partial
-# requests.
-#
-# Note that the use of %{X-Forwarded-For}i instead of %h is not recommended.
-# Use mod_remoteip instead.
-#
-LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
-LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
-LogFormat "%h %l %u %t \"%r\" %>s %O" common
-LogFormat "%{Referer}i -> %U" referer
-LogFormat "%{User-agent}i" agent
-
-# Include of directories ignores editors' and dpkg's backup files,
-# see README.Debian for details.
-
-# Include generic snippets of statements
-IncludeOptional conf-enabled/*.conf
-
-# Include the virtual host configurations:
-IncludeOptional sites-enabled/*.conf
-
-# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+ $ cd /var/www/widgetworld/current
 ```
 
-Now add a call to this template in the recipes/default.rb file
+Then run this command to generate your secret key base:
 
 ```bash
-  template '/etc/apache2/apache2.conf' do
-    source 'apache2.conf.erb'
-  end
+  $ RAILS_ENV=staging rake secret
 ```
+
+Now open up the deploy user's bash profile:
+```bash
+  $ vim ~/.bash_profile
+```
+
+And add this content:
+```bash
+  export SECRET_KEY_BASE=[code you just generated]
+```
+
+You can then make sure this variable is set correctly by running
 
 ```bash
-  $ kitchen converge app-ubuntu-14-04-x64
+  $ echo $SECRET_KEY_BASE
 ```
+
+Then source the bash profile:
 
 ```bash
-  $ kitchen verify app-ubuntu-14-04-x64
+  $ source ~/.bash_profile
 ```
 
-And they should pass!
+Now restart Apache to make sure Rails loads this environmental variable:
 
-Now look at your testing instance's IP address in the browser...
+```bash
+  $ sudo service apache2 restart
+```
 
-And congratulations!  You now have a working testing web server that you have deployed your application to and it works!
+If you're still getting errors, run this command on your staging instance:
+
+```bash
+  $ cp config/environments/production.rb config/environments/staging.rb
+```
+
+And you should see a page that's ready to list some widgets!
 
