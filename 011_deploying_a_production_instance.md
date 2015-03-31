@@ -5,7 +5,12 @@ Now let's create an actual production instance, one that we will direct the user
 This is very similar to creating our test server.
 
 ```bash
-  $ knife digital_ocean droplet create --server-name production-vm-group#{group number}.vm.io --image ubuntu-14-04-x64 --location sfo1 --size 1gb --ssh-keys #{key num provided by instructors}
+  vagrant@workshop ~$ knife digital_ocean droplet create \
+                             --server-name production-vm-#{group number}.vm.io \
+                             --image ubuntu-14-04-x64 \
+                             --location sfo1 \
+                             --size 1gb \
+                             --ssh-keys $DIGITALOCEAN_SSH_KEY_IDS
 ```
 
 Take note of the IP address returned in the output and make sure to pass it on to each of your group members.
@@ -27,26 +32,41 @@ First, a bit of refactoring.  Open up your template/default/app-apache2.conf fil
 
 See how we hard coded the IP address into it?  This will make it not work on our production VM.  Let's refactor this.
 
-[TO DO: REFACTOR INTO ATTRIBUTE, for now we're manually changing it]
+Change this line:
+
+```bash
+  ServerName 192.241.201.66
+```
+
+To this line:
+
+```bash
+  ServerName <%= node["ip_address"] %>
+```
+
+And we'll set that node attribute next
 
 ## Node Config
 
 Now let's define another json file, this one for the ip address of our production server.
 
 ```bash
-  $ touch nodes/[your_production_nodes_ip_address].json
+    vagrant@workshop $ touch nodes/[your_production_nodes_ip_address].json
 ```
 
 Now open up the json file and the add this content to run each of the recipes in the cookbook.
 
 ```bash
   {
+    "ip_address": [production instance ip address]
     "run_list": [
       "recipe[my_web_server_cookbook::default]",
+      "recipe[my_web_server_cookbook::swap_memory]",
       "recipe[my_web_server_cookbook::passenger]",
       "recipe[my_web_server_cookbook::ruby]",
       "recipe[my_web_server_cookbook::postgresql]",
-      "recipe[my_web_server_cookbook::user]"
+      "recipe[my_web_server_cookbook::user]",
+      "recipe[my_web_server_cookbook::app]"
       ],
   }
 ```
@@ -55,7 +75,7 @@ Now open up the json file and the add this content to run each of the recipes in
 
 Now bootstrap your node with chef:
 ```bash
-  $ knife solo bootstrap root@#{IP ADDRESS FOR NODE}
+    vagrant@workshop $ knife solo bootstrap root@#{IP ADDRESS FOR NODE}
 ```
 
 And check out that IP address in your browser.  You should see your custom apache page!
@@ -65,13 +85,13 @@ Now the steps we run involving Capistrano are largely the same for our testing i
 Go back to your WidgetWorld application:
 
 ```bash
-  $ cd ~/widgetworld
+    vagrant@workshop $ cd ~/widgetworld
 ```
 
 And open up a deploy config for your production environment with your preferred editor.
 
 ```bash
-  $ vim config/deploy/production.rb
+    vagrant@workshop $ vim config/deploy/production.rb
 ```
 
 Uncomment and change these lines:
@@ -87,9 +107,9 @@ To this
 (Make sure to substitute the ip address for your PRODUCTION node)
 
 ```bash
-  role :app, %w{deploy@#{ip_address}}
-  role :web, %w{deploy@#{ip_address}}
-  role :db,  %w{deploy@#{ip_address}}
+  role :app, %w{deploy@[ip_address]}
+  role :web, %w{deploy@[ip_address]}
+  role :db,  %w{deploy@[ip_address]}
 ```
 
 And uncomment and change this line
@@ -103,13 +123,13 @@ To this:
 (Make sure to substitute the ip address for your PRODUCTION node)
 
 ```bash
-  server '#{ip_address}', user: 'deploy', roles: %w{web app}
+  server '[ip_address]', user: 'deploy', roles: %w{web app}
 ```
 
 Now let's check whether our application is ready to deploy to testing.  Run this command:
 
 ```bash
-  $ cap production deploy:check
+    vagrant@workshop $ cap production deploy:check
 ```
 
 This time it shouldn't prompt for a password because our SSH key is already on the node.
@@ -132,7 +152,7 @@ SSH into your production instance.
 
 Create and open this file on your VM.
 ```bash
-  $ vim /var/www/widgetworld/shared/config/database.yml
+   deploy@production  vim /var/www/widgetworld/shared/config/database.yml
 ```
 
 And add this content:
@@ -158,17 +178,17 @@ default: &default
   encoding: unicode
 # For details on connection pooling, see rails configuration guide
 # http://guides.rubyonrails.org/configuring.html#database-pooling
-pool: 5
+  pool: 5
 
 development:
   <<: *default
   database: widgetworld_development
 
 # The specified database role being used to connect to postgres.
-# To create additional roles in postgres see `$ createuser --help`.
+# To create additional roles in postgres see `  vagrant@workshop $ createuser --help`.
 # When left blank, postgres will use the default role. This is
 # the same name as the operating system user that initialized the database.
-username: nellshamrell
+  username: nellshamrell
 
 # The password associated with the postgres role (username).
 #password:
@@ -182,7 +202,7 @@ username: nellshamrell
 # If your server runs on a different port number, change accordingly.
 #port: 5432
 
-# Schema search path. The server defaults to $user,public
+# Schema search path. The server defaults to   vagrant@workshop $user,public
 #schema_search_path: myapp,sharedapp,public
 
 # Minimum log levels, in increasing order:
@@ -218,7 +238,8 @@ test:
 #     url: <%= ENV['DATABASE_URL'] %>
 #
 
-<<: *default
+production:
+  <<: *default
   database: widgetworld_production
   username: deploy
   password: <%= ENV['WIDGETWORLD_DATABASE_PASSWORD'] %>
@@ -229,15 +250,13 @@ Then save and close the file.
 Now let's set that environment variable.  On your testing VM, run this command:
 
 ```bash
-   $ export WIDGETWORLD_DATABASE_PASSWORD=[password you used in your chef recipe for the deploy user to login to postgres]
+     deploy@production $ export WIDGETWORLD_DATABASE_PASSWORD=[password you used in your chef recipe for the deploy user to login to postgres]
 ```
-
-[TO DO: Set this in node configuration in Chef recipe?]
 
 Now let's just create a file at /var/www/widgetworld/shared/secrets.yml.  We'll add content to it in a little bit.
 
 ```bash
-  $ touch /var/www/widgetworld/shared/config/secrets.yml
+    deploy@production $ touch /var/www/widgetworld/shared/config/secrets.yml
 ```
 
 Now go ahead and exit out of your VM.
@@ -245,13 +264,13 @@ Now go ahead and exit out of your VM.
 Back on your development box, make sure you're in the widgetworld directory.
 
 ```bash
-  $ cd ~/widgetworld
+    vagrant@workshop $ cd ~/widgetworld
 ```
 
 Then run the deploy check one more time.
 
 ```bash
-  $ cap production deploy:check
+    vagrant@workshop $ cap production deploy:check
 ```
 
 If it does not return an error and exits with a line similar to:
@@ -265,8 +284,10 @@ Then we're ready to deploy!
 Deploy with
 
 ```bash
- $ cap production deploy
+   vagrant@workshop $ cap production deploy
 ```
+
+Whoops, looks like it needs bundler installed
 
 Then ssh back into your VM (this time as the DEPLOY user, not root)
 
@@ -274,30 +295,101 @@ Then ssh back into your VM (this time as the DEPLOY user, not root)
   ssh deploy@[your production instance's IP address]
 ```
 
+And run
+
 Install bundler
 
 ```bash
-$ sudo gem install bundler
+    deploy@production $ sudo gem install bundler
 ```
 
-Change to your application directory.
+Exit out of your production instance and run this command again:
 
 ```bash
-$ cd /var/www/widgetworld/current
+    vagrant@workshop $ cap production deploy
 ```
 
-And run bundler in this directory.
+And we have a failure, looks like we need to create our database
+
+First, open up your Capfile, and comment out this line:
+```bash
+ # require 'capistrano/rails/migrations'
+```
+
+Then run your deploy again
 
 ```bash
-  $ bundle
+    vagrant@workshop $ cap production deploy
 ```
+
+And ssh into your production instance:
+```bash
+    vagrant@workshop $ ssh deploy@[production instance ip]
+```
+
+Then change directories to your current widgetworld deploy:
+
+```bash
+    vagrant@workshop $ cd /var/www/widgetworld/current
+```
+
+Then create your database.  (We're using a very common Ruby/Rails tool called [Rake](https://github.com/ruby/rake)
+
+```bash
+    vagrant@workshop $ RAILS_ENV=production rake db:create
+```
+
+If you get no output, that means it was a success!
+
+Exit out of your production instance.
+
+Back on your development VM, make sure you're in your widgetworld directory:
+
+```bash
+    vagrant@workshop $ vim Capfile
+```
+
+And uncomment this line:
+
+```bash
+ # require 'capistrano/rails/migrations'
+```
+
+So it looks like this:
+
+```bash
+  require 'capistrano/rails/migrations'
+```
+
+Now run your deploy again to run these migrations:
+
+```bash
+    vagrant@workshop $ cap staging deploy
+```
+
+If you see this output, the migration was successful!
+```bash
+  DEBUG [48ce67f9]        == 20141223043443 CreateWidgets: migrating ====================================
+  DEBUG [48ce67f9]        -- create_table(:widgets)
+  DEBUG [48ce67f9]           -> 0.0042s
+  DEBUG [48ce67f9]        == 20141223043443 CreateWidgets: migrated (0.0043s) ===========================
+```
+
+And it works!
+
+Now let's configure the secrets file.
 
 ## Configuring Secrets file
+
+SSH into your production instance:
+```bash
+    deploy@production $ ssh deploy@[production instance ip]
+```
 
 Open up this file with your editor of choice.
 
 ```bash
-  $ vim /var/www/widgetworld/shared/config/secrets.yml
+    deploy@production $ vim /var/www/widgetworld/shared/config/secrets.yml
 ```
 
 And add this content.
@@ -334,7 +426,7 @@ Notice another environment variable?  <%= ENV["SECRET_KEY_BASE"] %>
 We need to set this, but first we need to generate a sequence to use as our secret key base. Do this by running this command:
 
 ```bash
-  $ RAILS_ENV=staging rake secret
+    deploy@production $ RAILS_ENV=production rake secret
 ```
 
 This will output a code to use as our secret key base.
@@ -342,7 +434,7 @@ This will output a code to use as our secret key base.
 Now let's create the environmental variable to store this key. Open up your bash profile in an editor:
 
 ```bash
-  $ vim ~/.bash_profile
+    deploy@production $ vim ~/.bash_profile
 ```
 
 And add this line to the end of the file
@@ -353,35 +445,24 @@ And add this line to the end of the file
 Save and close the file, then reload your bash profile
 
 ```bash
-  $ source ~/.bash_profile
+    deploy@production $ source ~/.bash_profile
 ```
 
 You can then make sure this variable is set correctly by running
 
 ```bash
-  $ echo $SECRET_KEY_BASE
+   deploy@production $ echo $SECRET_KEY_BASE
 ```
 
-## Setting up the databases
-  Next, create the database for your Rails application and run migrations with these commands
+Now restart your Apache service
+
 ```bash
-  $ RAILS_ENV=production rake db:create
-  $ RAILS_ENV=production rake db:migrate
+   deploy@production $ sudo service apache2 restart
 ```
-
-Then go ahead and exit out of your VM.
 
 ## Making Apache aware of our site
 
 We already did this when we refactored our app recipe above.
-
-Now let's try our deploy one more time.
-
-Make sure you're in your widgetworld directory
-
-```bash
-  $ cap production deploy
-```
 
 Now check out the IP address of your Production instance in a browser and you should see the production version of your site!
 
