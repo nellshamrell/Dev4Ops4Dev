@@ -120,7 +120,7 @@ And, as expected, we get a failure.
 And this is a good time to commit, now that we have a reliably failing test.  Add in the recipe and test file to git.
 
 ```bash
- vagrant@workshop my-cookbook $ git add recipes/passenger.rb test/integration/serverspec/passenger
+ vagrant@workshop my-cookbook $ git add recipes/passenger.rb test/integration/serverspec/passenger .kitchen.yml
 ```
 
 Then commit
