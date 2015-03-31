@@ -86,7 +86,7 @@ Then re-run
 
 Next, you need to add the authorization token provided to you by the instructors to your knife config
 
-.chef/knife.rb
+~/.chef/knife.rb
 ```bash
 knife[:digital_ocean_access_token]   = 'token_provided_by_instructors'
 ```
@@ -124,8 +124,9 @@ Test knife-solo setup
   $ knife solo
 ```
 
-Should see something similar to:
+You should see something similar to:
 
+```bash
 FATAL: Cannot find sub command for: 'solo'
 Available solo subcommands: (for details, knife SUB-COMMAND --help)
 
@@ -159,20 +160,24 @@ Now open up the json file and the add this content to run each of the recipes in
   {
     "run_list": [
       "recipe[my_web_server_cookbook::default]",
-      "recipe[my_web_server_cookbook::passenger]",
       "recipe[my_web_server_cookbook::ruby]",
+      "recipe[my_web_server_cookbook::swap_memory]",
+      "recipe[my_web_server_cookbook::passenger]",
       "recipe[my_web_server_cookbook::postgresql]",
       "recipe[my_web_server_cookbook::user]"
-      ],
+      ]
   }
 ```
 
 ## Bootstrapping your node
 
 Now bootstrap your node with chef:
+
 ```bash
   $ knife solo bootstrap root@#{IP ADDRESS FOR NODE}
 ```
+
+Wait for this to complete (it will take a little bit).
 
 And check out that IP address in your browser.  You should see your custom apache page!
 

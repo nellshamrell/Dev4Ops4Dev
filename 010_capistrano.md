@@ -79,43 +79,21 @@ Next, open your Capfile in your favorite editor
    $ vim Capfile
 ```
 
-Uncomment this line
+Uncomment these lines
 
 ```bash
   # require 'capistrano/rvm'
+  # require 'capistrano/bundler'
+  # require 'capistrano/rails/migrations'
 ```
 
 So it looks like this
 
 ```bash
-   require 'capistrano/rvm'
- ```
-
- Later on we'll be storing our database credentials (including password) in config/database.yml.  To avoid accidentally committing this to our potentially public repo, let's first make a copy of the file to serve as an example
-
- ```bash
-  $ cp config/database.yml config/database_example.yml
- ```
-
- The open up your .gitignore file with your favorite editor
-
- ```bash
-  $ vim .gitignore
- ```
-
- And add this line to the file
-
- ```bash
- config/database.yml
- ```
-
- This will keep the database.yml file out of any git commits, histories, or repos.
-
- While we're at it, let's also add config/secrets.yml.  Widget World is a Rails 4 application and Rails 4 added the secrets configuration file to contain credentials.  This is not something we want possible exposed to the world in source control, so add this line to your .gitignore file, then save and close the file.
-
- ```bash
- config/secrets.yml
- ```
+  # require 'capistrano/rvm'
+  # require 'capistrano/bundler'
+  # require 'capistrano/rails/migrations'
+```
 
  Next, open up the config/deploy.rb file with your favorite text editor
 
@@ -292,17 +270,6 @@ Now, run the tests:
 
 And they should fail.
 
-
-```bash
-include_recipe 'my_web_server_cookbook::default'
-include_recipe 'my_web_server_cookbook::deploy_user'
-
-execute 'change owner and group' do
-  command "sudo chown deploy:deploy /var/www"
-  action :run
-end
-```
-
 Now let's make them pass.  Open up recipes/app.rb and add this content:
 
 ```bash
@@ -396,7 +363,7 @@ To this:
 (Make sure to substitute the ip address for your testing node)
 
 ```bash
-  server '#{ip_address}', user: 'deploy', roles: %w{web app}
+  server '#{ip_address}', user: 'deploy', roles: %w{app db web}
 ```
 
 Now let's check whether our application is ready to deploy to testing.  Run this command:
