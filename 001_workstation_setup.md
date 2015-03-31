@@ -119,7 +119,7 @@ Zack Wallace has a fantastic blog post called ["Getting Started with Vagrant on 
 Look around!  Your development machine should have some tools - some familiar, some perhaps not:
 
 ```bash
-  vagrant@d4o4d-workshop $ for cmd in "nano vim emacs git vagrant tugboat chef rubocop foodcritic rspec"; do $cmd --version; done
+  vagrant@d4o4d-workshop $ for cmd in nano vim emacs git vagrant tugboat chef rubocop foodcritic rspec; do $cmd --version; echo ""; done
 ```
 
 Also notice that the prompt has changed, indicating that you on another machine - VM within your laptop!:
