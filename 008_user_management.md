@@ -32,7 +32,7 @@ And we need to be able to access a spec_helper similar to the one living in test
 
 As always, we start with a test:
 
-test/integration/deploy_user/serverspec/deploy_user_spec.rb
+test/integration/user/serverspec/user_spec.rb
 ```bash
 require 'spec_helper'
 describe 'my_web_server_cookbook::user' do
@@ -115,7 +115,7 @@ The deploy user needs to be able to run sudo commands.  To do this, we need to a
 
 Add this to your test file
 
-test/integration/deploy_user/serverspec/deploy_user_spec.rb
+test/integration/user/serverspec/user_spec.rb
 ```bash
    describe command('getent group sudo') do
      its(:stdout) { should match /deploy/ }
@@ -148,7 +148,7 @@ Finally, it can be annoying to be prompted for a password every time the deploy 
 
 First, some tests to make sure the file exists, then another to ensure the correct content is in the file:
 
-test/integration/deploy_user/serverspec/deploy_user_spec.rb
+test/integration/user/serverspec/user_spec.rb
 ```bash
   describe file('/etc/sudoers.d/deploy') do
     it { should be_file }
