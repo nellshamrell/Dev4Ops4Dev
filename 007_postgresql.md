@@ -89,13 +89,13 @@ And, as expected, we get failures.
 Now, let's commit the code:
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb test/integration/serverspec/postgresql
+ vagrant@workshop $ git add recipes/postgresql.rb test/integration/serverspec/postgresql
 ```
 
 Then commit
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'failing postgresql package test'
+ vagrant@workshop $ git commit -m 'failing postgresql package test'
 ```
 
 Now let's make it pass.  Open up recipes/postgresql.rb and add this content:
@@ -120,13 +120,13 @@ And they pass!
 You know what to do.
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb
+ vagrant@workshop $ git add recipes/postgresql.rb
 ```
 
 Then commit
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'passing postgresql package test'
+ vagrant@workshop $ git commit -m 'passing postgresql package test'
 ```
 
 ## Creating the deploy user
@@ -151,13 +151,13 @@ Then run the test and watch it fail
 And commit:
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git add test/integration/serverspec/passenger
+ vagrant@workshop $ git add test/integration/serverspec/passenger
 ```
 
 Then commit
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'failing postgres deploy user test'
+ vagrant@workshop $ git commit -m 'failing postgres deploy user test'
 ```
 
 And now let's add the code to make this pass
@@ -186,13 +186,13 @@ They should pass!
 And commit.
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb
+ vagrant@workshop $ git add recipes/postgresql.rb
 ```
 
 Then commit
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git commit -m '[passing postgres deploy user test'
+ vagrant@workshop $ git commit -m '[passing postgres deploy user test'
 ```
 
 ## Granting Create DB access to the deploy user
@@ -217,11 +217,11 @@ Now run it and watch it fail.
 
 Then commit it:
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git add test/integration/serverspec/postgresql
+ vagrant@workshop $ git add test/integration/serverspec/postgresql
 ```
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'failing postgresql privileges spec'
+ vagrant@workshop $ git commit -m 'failing postgresql privileges spec'
 ```
 
 Then add in the code to make it pass.
@@ -248,11 +248,11 @@ And we have a working Postgres database!
 Now let's commit this:
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git add recipes/postgresql.rb
+ vagrant@workshop $ git add recipes/postgresql.rb
 ```
 
 ```bash
- vagrant@workshop my-cookbook vagrant@workshop $ git commit -m 'passing postgresql privileges test'
+ vagrant@workshop $ git commit -m 'passing postgresql privileges test'
 ```
 
 
