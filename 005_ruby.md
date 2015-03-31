@@ -5,25 +5,25 @@ Now let's create a recipe which will install Ruby and all its associated depende
 Let's generate a new recipe like so:
 
 ```bash
-  $ chef generate recipe ruby
+ vagrant@workshop $ chef generate recipe ruby
 ```
 
 Now we need to create the directory where our server specs will live:
 
 ```bash
-  $ mkdir -p test/integration/ruby/serverspec
+ vagrant@workshop $ mkdir -p test/integration/ruby/serverspec
 ```
 
 And create the test file
 
 ```bash
-  $ touch test/integration/ruby/serverspec/ruby_spec.rb
+ vagrant@workshop $ touch test/integration/ruby/serverspec/ruby_spec.rb
 ```
 
 And we need to be able to access a spec_helper similar to the one living in test/integration/default/serverspec.  In this case, let's copy that one into our new integration test directory.
 
 ```bash
-  $ cp test/integration/default/serverspec/spec_helper.rb test/integration/ruby/serverspec
+ vagrant@workshop $ cp test/integration/default/serverspec/spec_helper.rb test/integration/ruby/serverspec
 ```
 
 ## Installing a base Ruby
@@ -33,7 +33,7 @@ We need to install a base version of Ruby for our system to use (though we will 
 Open up your test file:
 
 ```bash
-  $ vim test/integration/ruby/serverspec/ruby_spec.rb
+ vagrant@workshop $ vim test/integration/ruby/serverspec/ruby_spec.rb
 ```
 
  And add in this content:
@@ -52,7 +52,7 @@ Now we need to add this test suite to our .kitchen.yml file so Test Kitchen will
 Open up you .kitchen.yml file
 
 ```bash
-  $ vim .kitchen.yml
+ vagrant@workshop $ vim .kitchen.yml
 ```
 
 And add this content:
@@ -72,25 +72,37 @@ suites:
 Next you'll need to create a new test instance for the new suite:
 
 ```bash
-  $ kitchen create ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen create ruby-ubuntu-14-04-x64
 ```
 
 And then converge on it.
 
 ```bash
-  $ kitchen converge ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 Now, run the tests:
 
 ```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
-And you should see a failure.  Now open your recipe file:
+And you should see a failure.
+
+Let's commit this to git:
 
 ```bash
-  $ vim recipes/ruby.rb
+ vagrant@workshop $ git add recipes/ruby.rb test/integration/ruby/serverspec/ruby.rb .kitchen.yml
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'failing ruby package test'
+```
+
+Now open your recipe file:
+
+```bash
+ vagrant@workshop $ vim recipes/ruby.rb
 ```
  And add in this content:
 
@@ -101,16 +113,26 @@ And you should see a failure.  Now open your recipe file:
 Now apply the Chef changes to your kitchen instance:
 
 ```bash
-  $ kitchen converge ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 And run your test again:
 
 ```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 And it should pass!
+
+Let's commit this to git:
+
+```bash
+ vagrant@workshop $ git add recipes/ruby.rb
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'passing ruby package test'
+```
 
 ## Installing Ruby Dependencies
 
@@ -123,7 +145,7 @@ git-core curl zlib1g-dev build-essential libssl-dev libreadline-dev libyaml-dev 
 Now let's create a test for each of these packages.  Open up the test file:
 
 ```bash
-  $ vim test/integration/ruby/serverspec/ruby_spec.rb
+ vagrant@workshop $ vim test/integration/ruby/serverspec/ruby_spec.rb
 ```
  And add in this content:
 
@@ -180,17 +202,27 @@ Now let's create a test for each of these packages.  Open up the test file:
 Then run these tests on your instance:
 
 ```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 You'll see several failures.
+
+Commit this:
+
+```bash
+ vagrant@workshop $ git add test/integration/ruby/serverspec/ruby.rb
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'failing ruby dependencies tests'
+```
 
 Now let's add in the code to make these tests pass.
 
 Open up your recipe file:
 
 ```bash
-  $ vim recipes/ruby.rb
+ vagrant@workshop $ vim recipes/ruby.rb
 ```
 
 And add in this content:
@@ -226,7 +258,7 @@ And add in this content:
 Now apply these changes to your test instance with:
 
 ```bash
-  $ kitchen converge ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 Whoops, looks like we need to run apt-get update here as well.  Fortunately, we can include the default recipe with this one, which will ensure that apt-get update runs.  Add this content to the top of your recipes/ruby.rb file.
@@ -238,16 +270,26 @@ Whoops, looks like we need to run apt-get update here as well.  Fortunately, we 
 Apply these changes:
 
 ```bash
-  $ kitchen converge ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 And run your tests:
 
 ```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 And now they should all pass!
+
+Let's commit this to git:
+
+```bash
+ vagrant@workshop $ git add recipes/ruby.rb
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'passing ruby dependencies tests'
+```
 
 ## Installing RVM and Ruby
 
@@ -352,13 +394,13 @@ Next, you need to add the dependency on the rvm cookbook to your metadata file i
 Change back to the my_web_server_cookbook directory:
 
 ```bash
-  $ cd my_web_server_cookbook
+ vagrant@workshop $ cd my_web_server_cookbook
 ```
 
 And open up the metadata file.
 
 ```bash
-  $ vim metadata.rb
+ vagrant@workshop $ vim metadata.rb
 ```
 
 And add this line to the file
@@ -380,8 +422,18 @@ test/integration/ruby/serverspec/ruby_spec.rb
 
 First, let's run those tests and watch them fail:
 
+Then commit:
+
 ```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
+ vagrant@workshop $ git add test/integration/ruby/serverspec/ruby.rb
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'failing rvm test'
+```
+
+```bash
+ vagrant@workshop $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 Now open up your recipe file and add in this content to make the tests pass.  Note that we need to include the default recipe from the rvm cookbook we just downloading from Supermarket.
@@ -397,13 +449,23 @@ Now open up your recipe file and add in this content to make the tests pass.  No
 Now apply the Chef changes:
 
 ```bash
-  $ kitchen converge ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen converge ruby-ubuntu-14-04-x64
 ```
 
 And run the tests again:
 
 ```bash
-  $ kitchen verify ruby-ubuntu-14-04-x64
+ vagrant@workshop $ kitchen verify ruby-ubuntu-14-04-x64
 ```
 
 Ruby and RVM are working!
+
+Let's commit this!
+
+```bash
+ vagrant@workshop $ git add recipes/ruby.rb
+```
+
+```bash
+  vagrant@workshop $ git commit -m 'passing rvm test'
+```
