@@ -62,7 +62,17 @@ Let's try all that!
 
 Most git servers authenticate with each other using SSH keys.  So, you'll need an SSH keypair.
 
-NOTE: if you already have a keypair and a github account, you can skip this; just make sure your ssh-agent is carrying your key when you are inside the Vagrant VM.
+NOTE: if you already have a keypair and a github account, you can add `config.ssh.forward_agent = true` in your Vagrantfile to make sure you're using ssh agent forwarding.  If taking this approach, your Vagrantfile will look like:
+```
+...
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://atlas.hashicorp.com/search.
+  config.vm.box = "dev4ops4dev"
+  config.ssh.forward_agent = true
+...
+```
+
+Then run `vagrant reload` to restart your VM.
 
 #### Generate the Key
 
