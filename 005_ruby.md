@@ -92,7 +92,7 @@ And you should see a failure.
 Let's commit this to git:
 
 ```bash
- vagrant@workshop $ git add recipes/ruby.rb test/integration/ruby/serverspec/ruby.rb .kitchen.yml
+ vagrant@workshop $ git add recipes/ruby.rb test/integration/ruby/serverspec/ruby_spec.rb .kitchen.yml
 ```
 
 ```bash
