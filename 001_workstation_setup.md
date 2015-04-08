@@ -77,7 +77,7 @@ TODO - instructions on how to find basebox image
 In your project directory (using terminal if you're on a Mac or Linux box, using the command prompt if you're on a Windows box) type in this command:
 
 ```bash
-  $ vagrant box add dev4ops4dev $USB_STICK_PATH/dev4ops4dev.box
+  $ vagrant box add dev4ops4dev $USB_STICK_PATH/workshop.box
 ```
 
 This will locate the workshop image, and load it into Vagrant's library of boxesunder the name 'dev4ops4dev'.  Now Vagrant will be able to create a running VM based on that box!
@@ -119,7 +119,7 @@ Zack Wallace has a fantastic blog post called ["Getting Started with Vagrant on 
 Look around!  Your development machine should have some tools - some familiar, some perhaps not:
 
 ```bash
-  vagrant@d4o4d-workshop $ for cmd in "nano vim emacs git vagrant tugboat chef rubocop foodcritic rspec"; do $cmd --version; done
+  vagrant@d4o4d-workshop $ for cmd in nano vim emacs git vagrant tugboat chef rubocop foodcritic rspec; do $cmd --version; done
 ```
 
 Also notice that the prompt has changed, indicating that you on another machine - VM within your laptop!:
