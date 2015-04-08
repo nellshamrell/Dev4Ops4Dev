@@ -53,7 +53,7 @@ Remember how we made that attributes file and included a default password for po
 ```
 
 ```bash
-  $ touch atttibutes/default.rb
+  $ touch attributes/default.rb
 ```
 
 Now open that file up and add this content:
